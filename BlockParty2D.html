@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Block Party 2D</title>
+<style type="text/css">
+a {
+	text-decoration: none;
+}
+body {
+	background-color: rgb(222,184,135);
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+
+	font-family: verdana;
+	font-size: 10pt;
+}
+svg {
+	background-color: rgb(245,235,205);
+	border: 1px solid rgb(0,0,0);
+	cursor: move;
+}
+#aboutBox {
+	width: 500px;
+	background-color: rgb(240,255,255); /* Azure */
+	border: 2px solid rgb(0,0,0);
+	margin-top: 8px;
+	padding-left: 5px;
+	padding-right: 5px;
+	display: none;
+}
+</style>
+<script>
+// Originally written December 4, 2014
+// Last updated February 24, 2016
+
+// Global Constants
+var svgNS = 'http://www.w3.org/2000/svg';
+var xlinkNS = 'http://www.w3.org/1999/xlink';
+
+var topLeft = 0;
+var topRight = 1;
+var bottomRight = 2;
+var bottomLeft = 3;
+
+var circle = '#circle';
+var square = '#square';
+var heart = '#heart';
+var triangle = '#triangle';
+
+var orange = 'rgb(255,165,0)';
+var red = 'rgb(255,0,0)';
+var blue = 'rgb(0,0,255)';
+var black = 'rgb(0,0,0)';
+
+var gridFill = 0;
+var solidFill = 1;
+var emptyFill = 2;
+var halfFill = 3;
+
+var xOffset = [0, 280, 280, 0];
+var yOffset = [0, 0, 280, 280];
+
+var blockArray = [
+[//Block0
+[[circle, orange, gridFill], [square, red, solidFill], [heart, blue, emptyFill], [triangle, black, halfFill]],
+[[triangle, orange, emptyFill], [heart, blue, gridFill], [circle, red, solidFill], [heart, orange, emptyFill]],
+[[triangle, red, halfFill], [heart, orange, gridFill], [triangle, black, solidFill], [circle, blue, emptyFill]],
+[[circle, blue, gridFill], [heart, red, halfFill], [square, red, halfFill], [triangle, blue, emptyFill]],
+[[heart, black, halfFill], [triangle, red, solidFill], [circle, black, solidFill], [square, blue, gridFill]],
+[[square, orange, gridFill], [square, black, halfFill], [circle, orange, emptyFill], [square, black, solidFill]],
+],
+[//Block1
+[[heart, black, solidFill], [circle, orange, solidFill], [triangle, blue, halfFill], [square, black, gridFill]],
+[[heart, red, gridFill], [triangle, orange, halfFill], [circle, black, emptyFill], [circle, black, halfFill]],
+[[heart, black, gridFill], [square, blue, solidFill], [triangle, black, emptyFill], [circle, blue, solidFill]],
+[[circle, red, emptyFill], [triangle, orange, gridFill], [square, blue, emptyFill], [square, orange, solidFill]],
+[[heart, blue, halfFill], [triangle, blue, gridFill], [heart, orange, halfFill], [heart, red, solidFill]],
+[[square, red, gridFill], [circle, red, halfFill], [triangle, red, emptyFill], [square, orange, emptyFill]],
+],
+[//Block2
+[[triangle, orange, halfFill], [triangle, black, emptyFill], [heart, black, emptyFill], [square, orange, solidFill]],
+[[circle, blue, solidFill], [circle, black, emptyFill], [square, blue, solidFill], [heart, red, gridFill]],
+[[heart, red, emptyFill], [heart, orange, halfFill], [circle, orange, solidFill], [heart, blue, halfFill]],
+[[triangle, blue, solidFill], [heart, black, gridFill], [square, black, gridFill], [circle, red, gridFill]],
+[[square, orange, halfFill], [triangle, blue, halfFill], [square, red, gridFill], [triangle, red, emptyFill]],
+[[square, blue, halfFill], [circle, red, emptyFill], [triangle, orange, solidFill], [circle, black, gridFill]],
+],
+[//Block3
+[[circle, black, halfFill], [heart, black, solidFill], [circle, red, halfFill], [square, blue, solidFill]],
+[[square, black, halfFill], [square, orange, solidFill], [square, orange, emptyFill], [triangle, red, solidFill]],
+[[circle, red, emptyFill], [triangle, orange, halfFill], [circle, blue, gridFill], [heart, black, gridFill]],
+[[circle, orange, gridFill], [heart, blue, emptyFill], [triangle, blue, halfFill], [square, blue, emptyFill]],
+[[heart, red, solidFill], [square, red, halfFill], [circle, black, emptyFill], [triangle, black, solidFill]],
+[[triangle, blue, gridFill], [triangle, orange, gridFill], [heart, red, gridFill], [heart, orange, emptyFill]],
+],
+[//Block4
+[[circle, blue, emptyFill], [triangle, black, halfFill], [circle, orange, emptyFill], [square, red, emptyFill]],
+[[circle, red, solidFill], [heart, black, halfFill], [square, red, solidFill], [square, black, emptyFill]],
+[[heart, orange, solidFill], [heart, red, halfFill], [square, black, solidFill], [triangle, blue, emptyFill]],
+[[circle, black, solidFill], [triangle, black, gridFill], [square, blue, gridFill], [heart, blue, solidFill]],
+[[circle, orange, halfFill], [triangle, red, halfFill], [triangle, red, gridFill], [heart, orange, gridFill]],
+[[triangle, orange, emptyFill], [heart, blue, gridFill], [circle, blue, halfFill], [square, orange, gridFill]],
+],
+[//Block5
+[[square, red, emptyFill], [square, red, solidFill], [heart, blue, gridFill], [circle, blue, emptyFill]],
+[[square, blue, halfFill], [heart, orange, solidFill], [triangle, blue, solidFill], [heart, blue, solidFill]],
+[[heart, red, emptyFill], [circle, black, gridFill], [circle, orange, halfFill], [square, black, emptyFill]],
+[[circle, red, gridFill], [triangle, orange, solidFill], [heart, orange, gridFill], [triangle, black, halfFill]],
+[[square, orange, halfFill], [triangle, red, halfFill], [square, black, solidFill], [circle, orange, emptyFill]],
+[[circle, blue, halfFill], [triangle, black, gridFill], [triangle, red, gridFill], [heart, black, emptyFill]],
+],
+[//Block6
+[[circle, black, solidFill], [triangle, blue, emptyFill], [circle, orange, gridFill], [triangle, red, solidFill]],
+[[square, red, halfFill], [heart, black, halfFill], [triangle, blue, gridFill], [circle, blue, gridFill]],
+[[circle, black, halfFill], [circle, red, halfFill], [heart, blue, emptyFill], [heart, red, halfFill]],
+[[heart, black, solidFill], [heart, red, solidFill], [square, blue, emptyFill], [triangle, orange, gridFill]],
+[[square, blue, gridFill], [square, orange, gridFill], [triangle, black, solidFill], [square, orange, emptyFill]],
+[[circle, red, solidFill], [square, black, halfFill], [triangle, orange, emptyFill], [heart, orange, emptyFill]],
+],
+[//Block7
+[[circle, orange, halfFill], [circle, red, gridFill], [square, red, gridFill], [triangle, blue, solidFill]],
+[[square, red, emptyFill], [heart, black, emptyFill], [circle, blue, solidFill], [heart, blue, halfFill]],
+[[circle, orange, solidFill], [heart, blue, solidFill], [square, black, gridFill], [square, blue, halfFill]],
+[[triangle, black, gridFill], [heart, red, emptyFill], [square, orange, halfFill], [heart, orange, halfFill]],
+[[triangle, red, emptyFill], [triangle, black, emptyFill], [triangle, orange, solidFill], [heart, orange, solidFill]],
+[[triangle, red, gridFill], [circle, blue, halfFill], [square, black, emptyFill], [circle, black, gridFill]],
+],
+];
+
+// Global Variables
+var svgNodeArray;
+var zIndexArray;
+
+var dragNode;
+var dragStartX;
+var dragStartY;
+
+function popToTop()
+{
+	var z = parseInt(dragNode.style.zIndex, 10);
+
+	for (; z < zIndexArray.length - 1; ++z)
+	{
+		zIndexArray[z] = zIndexArray[z + 1];
+		zIndexArray[z].style.zIndex = z;
+	}
+
+	zIndexArray[z] = dragNode;
+	dragNode.style.zIndex = z;
+}
+function releaseElement()
+{
+	document.onmousemove = null;
+	document.onmouseup = null;
+}
+function handleDrag(event)
+{
+	dragNode.style.left = (dragStartX + event.clientX) + 'px';
+	dragNode.style.top = (dragStartY + event.clientY) + 'px';
+	return false;
+}
+function startDrag(event)
+{
+	dragNode = event.currentTarget;
+	dragStartX = parseInt(dragNode.style.left, 10) - event.clientX;
+	dragStartY = parseInt(dragNode.style.top, 10) - event.clientY;
+	popToTop();
+	document.onmousemove = handleDrag;
+	document.onmouseup = releaseElement;
+	return false;
+}
+function handleKeyDown(event)
+{
+	if (event.target instanceof HTMLInputElement)
+		return true;
+
+	var rotateAngle = parseInt(dragNode.style.transform.substr(7), 10);
+	var key = event.key || event.keyIdentifier;
+
+	if (key == "ArrowLeft" || key == "Left") {
+		if ((rotateAngle -= 10) < 0) rotateAngle += 360;
+	} else if (key == "ArrowRight" || key == "Right") {
+		if ((rotateAngle += 10) > 359) rotateAngle -= 360;
+	} else return true;
+
+	var transform = 'rotate(' + rotateAngle + 'deg)';
+	dragNode.style.transform = transform;
+	dragNode.style.webkitTransform = transform;
+	return false;
+}
+function draw(position, shape, color, fill)
+{
+	var transformList = [];
+
+	var translateX = xOffset[position];
+	var translateY = yOffset[position];
+	if (translateX != 0 || translateY != 0)
+		transformList.push('translate(' + translateX + ' ' + translateY + ')');
+
+	var rotateAngle = position * 90;
+	if (rotateAngle != 0)
+		transformList.push('rotate(' + rotateAngle + ' 70 70)');
+
+	var gNode = document.createElementNS(svgNS, 'g');
+	if (transformList.length > 0)
+		gNode.setAttribute('transform', transformList.join(' '));
+
+	var useNode = document.createElementNS(svgNS, 'use');
+	switch (fill) {
+		case gridFill:
+			useNode.setAttributeNS(xlinkNS, 'href', '#gridFill');
+			useNode.setAttribute('clip-path', 'url(' + shape + 'Clip)');
+			useNode.setAttribute('fill', 'none');
+			break;
+		case solidFill:
+			useNode.setAttributeNS(xlinkNS, 'href', shape + 'Shape');
+			useNode.setAttribute('fill', color);
+			break;
+		case emptyFill:
+			useNode.setAttributeNS(xlinkNS, 'href', shape + 'Shape');
+			useNode.setAttribute('fill', 'none');
+			break;
+		case halfFill:
+			useNode.setAttributeNS(xlinkNS, 'href', '#halfFill');
+			useNode.setAttribute('clip-path', 'url(' + shape + 'Clip)');
+			useNode.setAttribute('fill', color);
+			break;
+	}
+	useNode.setAttribute('stroke', color);
+	gNode.appendChild(useNode);
+
+	if (fill === gridFill || fill === halfFill) {
+		useNode = document.createElementNS(svgNS, 'use');
+		useNode.setAttributeNS(xlinkNS, 'href', shape + 'Shape');
+		useNode.setAttribute('stroke', color);
+		useNode.setAttribute('fill', 'none');
+		gNode.appendChild(useNode);
+	}
+
+	return gNode;
+}
+function drawAllFaces()
+{
+	var refNode = document.getElementById('block0');
+
+	for (var blockIndex = 0; blockIndex < blockArray.length; ++blockIndex)
+		for (var faceIndex = 0; faceIndex < 6; ++faceIndex)
+		{
+			var id = 'block' + blockIndex + 'face' + faceIndex;
+
+			var svgNode = document.createElementNS(svgNS, 'svg');
+			svgNode.setAttribute('id', id);
+			svgNode.setAttribute('width', refNode.getAttribute('width'));
+			svgNode.setAttribute('height', refNode.getAttribute('height'));
+			svgNode.setAttribute('viewBox', refNode.getAttribute('viewBox'));
+			refNode.parentNode.appendChild(svgNode);
+
+			var face = blockArray[blockIndex][faceIndex];
+			for (var i = 0; i < 4; ++i)
+				svgNode.appendChild(draw(i, face[i][0], face[i][1], face[i][2]));
+		}
+}
+function shuffle()
+{
+	var i;
+
+	var refNode = svgNodeArray[0];
+	var refWidth = parseInt(refNode.getAttribute('width'), 10);
+	var refHeight = parseInt(refNode.getAttribute('height'), 10);
+	var refHypot = Math.ceil(Math.sqrt(refWidth * refWidth + refHeight * refHeight));
+
+	var bodyRect = document.body.getBoundingClientRect();
+	var minLeft = bodyRect.left + (refHypot - refWidth);
+	var maxLeft = bodyRect.right - refHypot;
+	var minTop = bodyRect.top + (refHypot - refHeight);
+	var maxTop = bodyRect.bottom - refHypot;
+
+	for (var blockIndex = 0; blockIndex < blockArray.length; ++blockIndex)
+	{
+		var svgNode = svgNodeArray[blockIndex];
+		var gNodes = svgNode.querySelectorAll('g');
+
+		for (i = 0; i < gNodes.length; ++i)
+			svgNode.removeChild(gNodes[i]);
+
+		var faceIndex = Math.floor(Math.random() * 6);
+		var face = blockArray[blockIndex][faceIndex];
+
+		for (i = 0; i < 4; ++i)
+			svgNode.appendChild(draw(i, face[i][0], face[i][1], face[i][2]));
+
+		svgNode.style.position = 'absolute';
+		svgNode.style.top = (minTop + Math.floor(Math.random() * (maxTop - minTop))) + 'px';
+		svgNode.style.left = (minLeft + Math.floor(Math.random() * (maxLeft - minLeft))) + 'px';
+		svgNode.style.zIndex = blockIndex;
+		zIndexArray[blockIndex] = svgNode;
+
+		var rotateAngle = Math.floor(Math.random() * 36) * 10;
+		var transform = 'rotate(' + rotateAngle + 'deg)';
+		svgNode.style.transform = transform;
+		svgNode.style.webkitTransform = transform;
+	}
+}
+function changeSize(event)
+{
+	var sizeField = document.getElementById('sizeField');
+	var size = parseInt(sizeField.value, 10);
+
+	if (isNaN(size) || size != sizeField.value || size < 40 || size > 400) {
+		alert('The size is not valid. Please enter an integer between 40 and 400.');
+		return false;
+	}
+
+	for (var blockIndex = 0; blockIndex < blockArray.length; ++blockIndex)
+	{
+		var svgNode = svgNodeArray[blockIndex];
+		svgNode.setAttribute('width', size);
+		svgNode.setAttribute('height', size);
+	}
+
+	sizeField.blur();
+	return false;
+}
+function clickShuffleButton(event)
+{
+	shuffle();
+	return false;
+}
+function init()
+{
+	var blockIndex;
+
+	svgNodeArray = new Array(blockArray.length);
+	zIndexArray = new Array(svgNodeArray.length);
+	dragNode = svgNodeArray[0] = document.getElementById('block0');
+
+	var refWidth = parseInt(dragNode.getAttribute('width'), 10);
+	var refHeight = parseInt(dragNode.getAttribute('height'), 10);
+
+	for (blockIndex = 1; blockIndex < svgNodeArray.length; ++blockIndex)
+	{
+		var svgNode = document.createElementNS(svgNS, 'svg');
+		svgNode.setAttribute('id', 'block' + blockIndex);
+		svgNode.setAttribute('width', refWidth);
+		svgNode.setAttribute('height', refHeight);
+		svgNode.setAttribute('viewBox', dragNode.getAttribute('viewBox'));
+		svgNodeArray[blockIndex] = svgNode;
+		dragNode.parentNode.appendChild(svgNode);
+	}
+
+	shuffle();
+
+	for (blockIndex = 0; blockIndex < svgNodeArray.length; ++blockIndex)
+		svgNodeArray[blockIndex].onmousedown = startDrag;
+
+	document.onkeydown = handleKeyDown;
+	document.getElementById('shuffleButton').onclick = clickShuffleButton;
+
+	var sizeField = document.getElementById('sizeField');
+	sizeField.value = refWidth;
+	sizeField.onchange = changeSize;
+
+	document.getElementById('aboutButton').onclick = function() {
+		document.getElementById('aboutBox').style.display = 'block';
+		return false;
+	}
+	document.getElementById('closeAboutButton').onclick = function() {
+		document.getElementById('aboutBox').style.display = 'none';
+		return false;
+	}
+}
+</script>
+</head>
+<body onload="init()">
+
+<input type="button" id="aboutButton" value="ABOUT" />
+Block Size:<input type="text" id="sizeField" value="160" size="4" maxlength="3" />
+<input type="button" id="shuffleButton" value="SHUFFLE" />
+&nbsp;(<a href="BlockParty2D.txt">Source</a>)
+(<a href="BlockParty3D.html">3D</a>)
+
+<div id="aboutBox">
+<p>Block Party 2D &mdash; Version 1.1 &mdash; February 24, 2016</p>
+<p>This is a JavaScript/SVG implementation of <a href="http://3pxh.com/">Three Pixel Heart's Block Party</a>.</p>
+<p>Drag and rotate the blocks to make a party.</p>
+<p>Use the left and right arrow keys to rotate the most recently clicked block.</p>
+<p><input type="button" id="closeAboutButton" value="CLOSE" /></p>
+</div>
+
+<p><svg id="block0" width="160" height="160" viewBox="0 0 420 420">
+<defs>
+  <path id="heartShape" stroke-width="10"
+    d="M 70,46 C 60,10 10,10 10,46 10,72 70,130 70,130 70,130 130,72 130,46 130,10 80,10 70,46 Z" />
+  <rect id="squareShape" stroke-width="10" x="10" y="10" width="120" height="120" />
+  <circle id="circleShape" stroke-width="10" cx="70" cy="70" r="60" />
+  <path id="triangleShape" stroke-width="10" d="M 70,20 L 130,130 10,130 Z" />
+  <path id="gridFill" stroke-width="4"
+    d="M 40,10 L 40,130 M 70,10 L 70,130 M 100,10 L 100,130 M 10,40 L 130,40 M 10,70 L 130,70 M 10,100 L 130,100" />
+  <rect id="halfFill" x="70" y="0" width="70" height="140" stroke-width="2" />
+  <clipPath id="heartClip"><use xlink:href="#heartShape" /></clipPath>
+  <clipPath id="squareClip"><use xlink:href="#squareShape" /></clipPath>
+  <clipPath id="circleClip"><use xlink:href="#circleShape" /></clipPath>
+  <clipPath id="triangleClip"><use xlink:href="#triangleShape" /></clipPath>
+</defs>
+</svg></p>
+
+</body>
+</html>

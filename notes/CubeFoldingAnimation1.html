@@ -1,0 +1,178 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>CSS Cube Folding Animation</title>
+<style type="text/css">
+body {
+	background-color: rgb(222,184,135);
+}
+.space {
+	-webkit-perspective: 1200px;
+	perspective: 1200px;
+
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+}
+.space div {
+	position: absolute;
+
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+
+	-webkit-transform-origin: 0 0;
+	transform-origin: 0 0;
+}
+.cube {
+	top: 200px;
+	left: 200px;
+	width: 100px;
+	height: 100px;
+}
+.face {
+	width: 100%;
+	height: 100px;
+
+	border: 1px solid rgb(204,204,204);
+	background-color: rgba(255,255,255,0.8);
+	box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+
+	color: rgb(0,0,0);
+	text-align: center;
+	line-height: 100px;
+	font-size: 20pt;
+}
+@-webkit-keyframes webkitAnimate1 {
+	from,to { -webkit-transform-origin: 100% 0; -webkit-transform: translateX(-100%) rotateY(0deg); }
+	10%,90% { -webkit-transform-origin: 100% 0; -webkit-transform: translateX(-100%) rotateY(-90deg); }
+}
+@-webkit-keyframes webkitAnimate3 {
+	from,80%,to { -webkit-transform: translateX(100%) rotateY(0deg); }
+	10%,70% { -webkit-transform: translateX(100%) rotateY(90deg); }
+}
+@-webkit-keyframes webkitAnimate456 {
+	from,60%,to { -webkit-transform: translateY(100px) rotateX(0deg); }
+	10%,50% { -webkit-transform: translateY(100px) rotateX(-90deg); }
+}
+@-webkit-keyframes webkitAnimate56 {
+	from,40%,to { -webkit-transform: translateY(50%) rotateX(0deg); }
+	10%,30% { -webkit-transform: translateY(50%) rotateX(-90deg); }
+}
+@-webkit-keyframes webkitAnimate6 {
+	from,20%,to { -webkit-transform: translateY(100%) rotateX(0deg); }
+	10% { -webkit-transform: translateY(100%) rotateX(-90deg); }
+}
+@keyframes animate1 {
+	from,to { transform-origin: 100% 0; transform: translateX(-100%) rotateY(0deg); }
+	10%,90% { transform-origin: 100% 0; transform: translateX(-100%) rotateY(-90deg); }
+}
+@keyframes animate3 {
+	from,80%,to { transform: translateX(100%) rotateY(0deg); }
+	10%,70% { transform: translateX(100%) rotateY(90deg); }
+}
+@keyframes animate456 {
+	from,60%,to { transform: translateY(100px) rotateX(0deg); }
+	10%,50% { transform: translateY(100px) rotateX(-90deg); }
+}
+@keyframes animate56 {
+	from,40%,to { transform: translateY(50%) rotateX(0deg); }
+	10%,30% { transform: translateY(50%) rotateX(-90deg); }
+}
+@keyframes animate6 {
+	from,20%,to { transform: translateY(100%) rotateX(0deg); }
+	10% { transform: translateY(100%) rotateX(-90deg); }
+}
+.face1 {
+	-webkit-transform: translateX(-100%);
+	transform: translateX(-100%);
+
+	-webkit-animation-name: webkitAnimate1;
+	-webkit-animation-duration: 10s;
+	-webkit-animation-iteration-count: infinite;
+
+	animation-name: animate1;
+	animation-duration: 10s;
+	animation-iteration-count: infinite;
+}
+.face3 {
+	-webkit-transform: translateX(100%);
+	transform: translateX(100%);
+
+	-webkit-animation-name: webkitAnimate3;
+	-webkit-animation-delay: 1s;
+	-webkit-animation-duration: 10s;
+	-webkit-animation-iteration-count: infinite;
+
+	animation-name: animate3;
+	animation-delay: 1s;
+	animation-duration: 10s;
+	animation-iteration-count: infinite;
+}
+.faces456 {
+	width: 100%;
+	height: 300px;
+
+	-webkit-transform: translateY(100px);
+	transform: translateY(100px);
+
+	-webkit-animation-name: webkitAnimate456;
+	-webkit-animation-delay: 2s;
+	-webkit-animation-duration: 10s;
+	-webkit-animation-iteration-count: infinite;
+
+	animation-name: animate456;
+	animation-delay: 2s;
+	animation-duration: 10s;
+	animation-iteration-count: infinite;
+}
+.faces56 {
+	width: 100%;
+	height: 200px;
+
+	-webkit-transform: translateY(50%);
+	transform: translateY(50%);
+
+	-webkit-animation-name: webkitAnimate56;
+	-webkit-animation-delay: 3s;
+	-webkit-animation-duration: 10s;
+	-webkit-animation-iteration-count: infinite;
+
+	animation-name: animate56;
+	animation-delay: 3s;
+	animation-duration: 10s;
+	animation-iteration-count: infinite;
+}
+.face6 {
+	-webkit-transform: translateY(100%);
+	transform: translateY(100%);
+
+	-webkit-animation-name: webkitAnimate6;
+	-webkit-animation-delay: 4s;
+	-webkit-animation-duration: 10s;
+	-webkit-animation-iteration-count: infinite;
+
+	animation-name: animate6;
+	animation-delay: 4s;
+	animation-duration: 10s;
+	animation-iteration-count: infinite;
+}
+</style>
+</head>
+<body>
+
+<div class="space">
+<div class="cube">
+<div class="face face1">1</div>
+<div class="face">2</div>
+<div class="face face3">3</div>
+<div class="faces456">
+<div class="face">4</div>
+<div class="faces56">
+<div class="face">5</div>
+<div class="face face6">6</div>
+</div><!-- faces56 -->
+</div><!-- faces456 -->
+</div><!-- cube -->
+</div><!-- space -->
+
+</body>
+</html>

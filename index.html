@@ -1,0 +1,2093 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Block Party 3D</title>
+<style type="text/css">
+a {
+	color: rgb(0,0,255);
+	text-decoration: none;
+}
+body {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+
+	margin: 0;
+	padding: 0;
+
+	background-color: rgb(222,184,135); /* BurlyWood */
+	font-family: verdana;
+	font-size: 10pt;
+}
+.space {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+
+	pointer-events: none;
+}
+.block {
+	position: absolute;
+
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+
+	pointer-events: auto;
+	cursor: move;
+}
+.blockface {
+	position: absolute;
+
+	background-color: rgb(255,235,205); /* BlanchedAlmond */
+	border: 1px solid rgb(204,204,204);
+	/* box-shadow: inset <offset-x> <offset-y> <blur-radius> <spread-radius> <color> */
+	box-shadow: inset 0 0 20px 0 rgba(0,0,0,0.2);
+
+	-webkit-backface-visibility: hidden;
+	backface-visibility: hidden;
+}
+#controlBox {
+	background-color: rgb(124,252,0); /* LawnGreen */
+	background-image: linear-gradient(to right, rgb(124,252,0), rgb(255,215,0)); /* LawnGreen to Gold */
+	border: 1px solid rgb(0,0,0);
+	border-radius: 10px;
+	display: inline-block;
+	margin-top: 8px;
+	margin-left: 8px;
+	padding: 5px;
+}
+#aboutBox {
+	width: 480px;
+	background-color: rgb(240,255,255); /* Azure */
+	background-image: linear-gradient(to bottom, rgb(200,255,255), rgb(240,255,255));
+	border: 2px solid rgb(0,0,0);
+	border-radius: 10px;
+	margin-top: 8px;
+	margin-left: 8px;
+	padding-left: 10px;
+	padding-right: 10px;
+	display: none;
+}
+#solverReasonBox {
+	position: absolute;
+	width: 560px;
+	background-color: rgb(230,230,250); /* Lavender */
+	border: 2px solid rgb(0,0,0);
+	border-radius: 10px;
+	display: none;
+	padding: 5px;
+	pointer-events: none;
+	text-align: center;
+}
+#solverReasonBox input {
+	pointer-events: auto;
+}
+#partyReasonBox {
+	position: absolute;
+	width: 580px;
+	height: 130px;
+	display: none;
+	overflow: hidden;
+	pointer-events: none;
+}
+#partyReasonBox input {
+	pointer-events: auto;
+}
+.partyReason {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 576px;
+	height: 126px;
+	background-color: rgb(255,240,0);
+	border: 2px solid rgb(0,0,0);
+	border-radius: 10px;
+	font-size: 12pt;
+
+	-webkit-transition: left 0.4s ease;
+	transition: left 0.4s ease;
+}
+.noParty {
+	background-color: rgb(255,228,225); /* MistyRose */
+}
+.prTop {
+	position: absolute;
+	top: 4px;
+	left: 0px;
+	width: 100%;
+	text-align: center;
+}
+.prBottom {
+	position: absolute;
+	bottom: 4px;
+	left: 0px;
+	width: 100%;
+	text-align: center;
+}
+.reasonTable {
+	border-collapse: collapse;
+	font-size: 12pt;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 12px;
+}
+.reasonTable svg {
+	margin-right: 12px;
+}
+.rt1 {height: 14px;}
+.rt2 {height: 24px;}
+.checkMark {
+	color: rgb(0,170,0);
+	font-weight: bold;
+	padding-left: 4px;
+	padding-right: 4px;
+}
+.xMark {
+	color: rgb(255,0,0);
+	font-weight: bold;
+	padding-left: 4px;
+	padding-right: 4px;
+}
+#gameBox {
+	position: fixed;
+	left: 8px;
+	bottom: 8px;
+	background-color: rgb(135,206,250); /* LightSkyBlue */
+	background-image: linear-gradient(to right, rgb(124,252,0), rgb(255,215,0)); /* LawnGreen to Gold */
+	border: 1px solid rgb(0,0,0);
+	border-radius: 10px;
+	font-size: 12pt;
+	padding: 5px;
+	pointer-events: none;
+}
+#gameBox input {
+	pointer-events: auto;
+}
+#gameOverBox {
+	position: absolute;
+	background-color: rgb(255,69,0); /* OrangeRed */
+	background-image: radial-gradient(ellipse, rgb(255,69,0), rgb(139,0,0)); /* OrangeRed to DarkRed */
+	border: 2px solid rgb(0,0,0);
+	border-radius: 10px;
+	display: none;
+	font-size: 30pt;
+	font-weight: bold;
+	padding: 20px;
+	text-align: center;
+}
+#closeGameOver {
+	margin-top: 10px;
+}
+input[type="range"] {
+	vertical-align: middle;
+}
+</style>
+<script>
+// Code by Pius Fischer
+// Special Thanks to Dancin' Angie for design help and feedback
+
+// Global Constants
+var svgNS = 'http://www.w3.org/2000/svg';
+var xlinkNS = 'http://www.w3.org/1999/xlink';
+
+var heart = 0;
+var circle = 1;
+var square = 2;
+var triangle = 3;
+var shapes = ['#heart', '#circle', '#square', '#triangle'];
+
+var red = 0;
+var blue = 1;
+var black = 2;
+var orange = 3;
+var colors = ['rgb(255,0,0)', 'rgb(0,0,255)', 'rgb(0,0,0)', 'rgb(255,165,0)'];
+
+var emptyFill = 0;
+var solidFill = 1;
+var halfFill = 2;
+var gridFill = 3;
+
+var xOffset = [0, 280, 280, 0];
+var yOffset = [0, 0, 280, 280];
+
+var traitName = ['shape', 'color', 'fill'];
+
+var blockSpec = [
+[//Block0
+// left, front, right, bottom, back, top
+[[circle, orange, gridFill], [square, red, solidFill], [heart, blue, emptyFill], [triangle, black, halfFill]],
+[[triangle, orange, emptyFill], [heart, blue, gridFill], [circle, red, solidFill], [heart, orange, emptyFill]],
+[[triangle, red, halfFill], [heart, orange, gridFill], [triangle, black, solidFill], [circle, blue, emptyFill]],
+[[circle, blue, gridFill], [heart, red, halfFill], [square, red, halfFill], [triangle, blue, emptyFill]],
+[[heart, black, halfFill], [triangle, red, solidFill], [circle, black, solidFill], [square, blue, gridFill]],
+[[square, orange, gridFill], [square, black, halfFill], [circle, orange, emptyFill], [square, black, solidFill]],
+],
+[//Block1
+[[heart, black, solidFill], [circle, orange, solidFill], [triangle, blue, halfFill], [square, black, gridFill]],
+[[heart, red, gridFill], [triangle, orange, halfFill], [circle, black, emptyFill], [circle, black, halfFill]],
+[[heart, black, gridFill], [square, blue, solidFill], [triangle, black, emptyFill], [circle, blue, solidFill]],
+[[circle, red, emptyFill], [triangle, orange, gridFill], [square, blue, emptyFill], [square, orange, solidFill]],
+[[heart, blue, halfFill], [triangle, blue, gridFill], [heart, orange, halfFill], [heart, red, solidFill]],
+[[square, red, gridFill], [circle, red, halfFill], [triangle, red, emptyFill], [square, orange, emptyFill]],
+],
+[//Block2
+[[triangle, orange, halfFill], [triangle, black, emptyFill], [heart, black, emptyFill], [square, orange, solidFill]],
+[[circle, blue, solidFill], [circle, black, emptyFill], [square, blue, solidFill], [heart, red, gridFill]],
+[[heart, red, emptyFill], [heart, orange, halfFill], [circle, orange, solidFill], [heart, blue, halfFill]],
+[[triangle, blue, solidFill], [heart, black, gridFill], [square, black, gridFill], [circle, red, gridFill]],
+[[square, orange, halfFill], [triangle, blue, halfFill], [square, red, gridFill], [triangle, red, emptyFill]],
+[[square, blue, halfFill], [circle, red, emptyFill], [triangle, orange, solidFill], [circle, black, gridFill]],
+],
+[//Block3
+[[circle, black, halfFill], [heart, black, solidFill], [circle, red, halfFill], [square, blue, solidFill]],
+[[square, black, halfFill], [square, orange, solidFill], [square, orange, emptyFill], [triangle, red, solidFill]],
+[[circle, red, emptyFill], [triangle, orange, halfFill], [circle, blue, gridFill], [heart, black, gridFill]],
+[[circle, orange, gridFill], [heart, blue, emptyFill], [triangle, blue, halfFill], [square, blue, emptyFill]],
+[[heart, red, solidFill], [square, red, halfFill], [circle, black, emptyFill], [triangle, black, solidFill]],
+[[triangle, blue, gridFill], [triangle, orange, gridFill], [heart, red, gridFill], [heart, orange, emptyFill]],
+],
+[//Block4
+[[circle, blue, emptyFill], [triangle, black, halfFill], [circle, orange, emptyFill], [square, red, emptyFill]],
+[[circle, red, solidFill], [heart, black, halfFill], [square, red, solidFill], [square, black, emptyFill]],
+[[heart, orange, solidFill], [heart, red, halfFill], [square, black, solidFill], [triangle, blue, emptyFill]],
+[[circle, black, solidFill], [triangle, black, gridFill], [square, blue, gridFill], [heart, blue, solidFill]],
+[[circle, orange, halfFill], [triangle, red, halfFill], [triangle, red, gridFill], [heart, orange, gridFill]],
+[[triangle, orange, emptyFill], [heart, blue, gridFill], [circle, blue, halfFill], [square, orange, gridFill]],
+],
+[//Block5
+[[square, red, emptyFill], [square, red, solidFill], [heart, blue, gridFill], [circle, blue, emptyFill]],
+[[square, blue, halfFill], [heart, orange, solidFill], [triangle, blue, solidFill], [heart, blue, solidFill]],
+[[heart, red, emptyFill], [circle, black, gridFill], [circle, orange, halfFill], [square, black, emptyFill]],
+[[circle, red, gridFill], [triangle, orange, solidFill], [heart, orange, gridFill], [triangle, black, halfFill]],
+[[square, orange, halfFill], [triangle, red, halfFill], [square, black, solidFill], [circle, orange, emptyFill]],
+[[circle, blue, halfFill], [triangle, black, gridFill], [triangle, red, gridFill], [heart, black, emptyFill]],
+],
+[//Block6
+[[circle, black, solidFill], [triangle, blue, emptyFill], [circle, orange, gridFill], [triangle, red, solidFill]],
+[[square, red, halfFill], [heart, black, halfFill], [triangle, blue, gridFill], [circle, blue, gridFill]],
+[[circle, black, halfFill], [circle, red, halfFill], [heart, blue, emptyFill], [heart, red, halfFill]],
+[[heart, black, solidFill], [heart, red, solidFill], [square, blue, emptyFill], [triangle, orange, gridFill]],
+[[square, blue, gridFill], [square, orange, gridFill], [triangle, black, solidFill], [square, orange, emptyFill]],
+[[circle, red, solidFill], [square, black, halfFill], [triangle, orange, emptyFill], [heart, orange, emptyFill]],
+],
+[//Block7
+[[circle, orange, halfFill], [circle, red, gridFill], [square, red, gridFill], [triangle, blue, solidFill]],
+[[square, red, emptyFill], [heart, black, emptyFill], [circle, blue, solidFill], [heart, blue, halfFill]],
+[[circle, orange, solidFill], [heart, blue, solidFill], [square, black, gridFill], [square, blue, halfFill]],
+[[triangle, black, gridFill], [heart, red, emptyFill], [square, orange, halfFill], [heart, orange, halfFill]],
+[[triangle, red, emptyFill], [triangle, black, emptyFill], [triangle, orange, solidFill], [heart, orange, solidFill]],
+[[triangle, red, gridFill], [circle, blue, halfFill], [square, black, emptyFill], [circle, black, gridFill]],
+]
+];
+
+var xAxis = [1, 0, 0];
+var yAxis = [0, 1, 0];
+var zAxis = [0, 0, 1];
+
+var axisVector = { X: xAxis, Y: yAxis, Z: zAxis };
+
+var rotateX90 = [1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1];
+var rotateXMinus90 = [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1];
+
+var rotateY90 = [0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1];
+var rotateYMinus90 = [0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 1];
+
+var rotateZ90 = [0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+var rotateZMinus90 = [0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+var rotateZ180 = [-1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+
+var faceRotations = [['Y', -90], ['Z', 0], ['Y', 90], ['X', -90], ['X', -180], ['X', -270]];
+
+var axisName = {
+	'1,0,0': 'posX', '-1,0,0': 'negX',
+	'0,1,0': 'posY', '0,-1,0': 'negY',
+	'0,0,1': 'posZ', '0,0,-1': 'negZ'
+};
+var z2Face = {
+	posX: 2, negX: 0, // right, left
+	posY: 3, negY: 5, // bottom, top
+	posZ: 1, negZ: 4  // front, back
+};
+var x2Rotation = [
+	{posZ: 0, negY: 1, negZ: 2, posY: 3}, // left
+	{posX: 0, negY: 1, negX: 2, posY: 3}, // front
+	{negZ: 0, negY: 1, posZ: 2, posY: 3}, // right
+	{posX: 0, posZ: 1, negX: 2, negZ: 3}, // bottom
+	{posX: 0, posY: 1, negX: 2, negY: 3}, // back
+	{posX: 0, negZ: 1, negX: 2, posZ: 3}  // top
+];
+
+var normalizedAngles = [
+	[[['Y',  90]], [['Y',  90], ['X', -90]], [['Y',  90], ['X', 180]], [['Y',  90], ['X',  90]]],
+	[[          ], [            ['Z',  90]], [            ['Z', 180]], [            ['Z', -90]]],
+	[[['Y', -90]], [['Y', -90], ['X',  90]], [['Y', -90], ['X', 180]], [['Y', -90], ['X', -90]]],
+	[[['X',  90]], [['X',  90], ['Y',  90]], [['X',  90], ['Y', 180]], [['X',  90], ['Y', -90]]],
+	[[['X', 180]], [['X', 180], ['Z', -90]], [['X', 180], ['Z', 180]], [['X', 180], ['Z',  90]]],
+	[[['X', -90]], [['X', -90], ['Y', -90]], [['X', -90], ['Y', 180]], [['X', -90], ['Y',  90]]]
+];
+
+var disabledElements = {
+	sizeField: [],
+	shuffleButton: [],
+	solveButton: [],
+	perspectiveOnOff: [],
+	perspectiveField: [],
+	playButton: []
+};
+var elementsDisabledForDrag = [
+	'sizeField',
+	'shuffleButton',
+	'solveButton',
+	'perspectiveOnOff',
+	'perspectiveField',
+	'playButton'
+];
+var elementsDisabledForPlay = ['shuffleButton', 'solveButton'];
+var elementsDisabledForShuffle = ['shuffleButton', 'solveButton', 'playButton'];
+var elementsDisabledForSolve = [
+	'sizeField',
+	'shuffleButton',
+	'solveButton',
+	'perspectiveOnOff',
+	'perspectiveField',
+	'playButton'
+];
+
+// Global Variables
+var spaceNode;
+var blockSize;
+var blockArray;
+
+var moving = 0;
+var solving = 0;
+var rotating = 0;
+var shuffling = 0;
+var perspective = 0;
+var aboutBoxDisplayed = false;
+
+var gameScore = 0;
+var highScore = 0;
+var topReason = 0;
+var maxReason = 0;
+
+var gameMode = false;
+var gameDuration = 5 * 60;
+var gameEndTime;
+var gameTimeNode;
+var gameTimer = null;
+
+var solverIconList = [];
+var solverLocationList = [];
+var solverPartyList = [];
+var solverPartyIndex = 0;
+var solverBlockList = [];
+
+var dragNode;
+var dragIndex = 0;
+var dragDeltaX;
+var dragDeltaY;
+
+var dragZCoord;
+var dropZCoord;
+
+function Block(blockNode, blockIndex)
+{
+	this.node = blockNode;
+	this.angles = [];
+	this.newAngles = [];
+	this.matrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+	this.newMatrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+	this.moving = 0;
+	this.rotating = false;
+	this.savedAngle = 0;
+	this.onTransitionEnd = null;
+	this.spec = blockSpec[blockIndex];
+	this.zCoord = dropZCoord;
+	this.applyTransform();
+}
+Block.prototype.matrixMultiply = function(rotationMatrix)
+{
+	var oldMatrix = this.matrix;
+	var newMatrix = this.newMatrix;
+
+	for (var col = 0; col < 12; col += 4)
+		for (var row = 0; row < 3; ++row)
+			newMatrix[col + row] =
+				rotationMatrix[row     ] * oldMatrix[col    ] +
+				rotationMatrix[row +  4] * oldMatrix[col + 1] +
+				rotationMatrix[row +  8] * oldMatrix[col + 2];
+
+	this.matrix = newMatrix;
+	this.newMatrix = oldMatrix;
+}
+Block.prototype.getFaceAndRotation = function()
+{
+	var matrix = this.matrix;
+
+	var newXAxis = axisName[[matrix[0], matrix[4], matrix[8]].join(',')];
+	var newZAxis = axisName[[matrix[2], matrix[6], matrix[10]].join(',')];
+
+	this.face = z2Face[newZAxis];
+	this.rotation = x2Rotation[this.face][newXAxis];
+}
+Block.prototype.setSolveRotation = function(desiredRotation, iconPosition)
+{
+	this.getFaceAndRotation();
+	this.solveRotation = (8 + desiredRotation - this.rotation - iconPosition) % 4;
+}
+Block.prototype.normalizeAngles = function()
+{
+	this.getFaceAndRotation();
+
+	var newAngles = normalizedAngles[this.face][this.rotation];
+
+	this.angles.length = 0;
+	for (var i = 0; i < newAngles.length; ++i)
+		this.angles.push([newAngles[i][0], newAngles[i][1]]);
+}
+Block.prototype.enableGrabTransition = function()
+{
+	this.zCoord = dragZCoord;
+	if (this.rotating) return;
+	if (perspective > 0) {
+		this.node.style.webkitTransition = '-webkit-transform 0.4s ease';
+		this.node.style.transition = 'transform 0.4s ease';
+	} else {
+		this.node.style.webkitTransition = '-webkit-transform 0.1s ease';
+		this.node.style.transition = 'transform 0.1s ease';
+	}
+	this.onTransitionEnd = null;
+}
+Block.prototype.enableRotateTransition = function()
+{
+	this.rotating = true;
+	if (this.moving) return;
+	this.node.style.webkitTransition = '-webkit-transform 0.4s ease';
+	this.node.style.transition = 'transform 0.4s ease';
+	this.onTransitionEnd = handleEndRotation;
+}
+Block.prototype.disableTransition = function()
+{
+	this.node.style.webkitTransition = 'none';
+	this.node.style.transition = 'none';
+	this.onTransitionEnd = null;
+}
+Block.prototype.applyTransform = function()
+{
+	var transform = ['translateZ(' + this.zCoord + 'px)'];
+
+	for (var i = 0; i < this.angles.length; ++i)
+		transform.push('rotate' + this.angles[i][0] + '(' + this.angles[i][1] + 'deg)');
+
+	transform = transform.join(' ');
+
+	this.node.style.transform = transform;
+	this.node.style.webkitTransform = transform;
+}
+Block.prototype.rotateMatrix = function(axis, angle)
+{
+	var matrix = this.matrix;
+
+	// Multiply the given <axis> (representing either the X, Y, or Z axis in
+	// the block's local coordinate system) by the block's rotation matrix to
+	// determine the corresponding screen axis (given by <x>, <y>, and <z>).
+
+	var x = axis[0] * matrix[0] + axis[1] * matrix[4] + axis[2] * matrix[8];
+	var y = axis[0] * matrix[1] + axis[1] * matrix[5] + axis[2] * matrix[9];
+	var z = axis[0] * matrix[2] + axis[1] * matrix[6] + axis[2] * matrix[10];
+
+	var rotationMatrix;
+	if (x !== 0) {
+		rotationMatrix = rotateX90; angle *= x;
+	} else if (y !== 0) {
+		rotationMatrix = rotateY90; angle *= y;
+	} else {
+		rotationMatrix = rotateZ90; angle *= z;
+	}
+
+	angle = ((angle + 360) % 360) / 90;
+	while (angle-- > 0)
+		this.matrixMultiply(rotationMatrix);
+}
+function setDisabled(elementList)
+{
+	for (var i = 0; i < elementList.length; ++i)
+	{
+		var elementId = elementList[i];
+		var element = document.getElementById(elementId);
+		disabledElements[elementId].push(element.disabled);
+		element.disabled = true;
+	}
+}
+function unsetDisabled(elementList)
+{
+	for (var i = 0; i < elementList.length; ++i)
+	{
+		var elementId = elementList[i];
+		document.getElementById(elementId).disabled = disabledElements[elementId].pop();
+	}
+}
+function handleEndShuffling2()
+{
+	this.disableTransition();
+	this.normalizeAngles();
+	this.applyTransform();
+
+	if (--shuffling === 0) {
+		unsetDisabled(elementsDisabledForShuffle);
+		if (gameMode) startGameTimer();
+	}
+}
+function handleEndShuffling1()
+{
+	var newAnglesLength = this.newAngles.length;
+	var i = this.angles.length - newAnglesLength;
+	for (var j = 0; j < newAnglesLength; ++j)
+	{
+		var axis = axisVector[this.angles[i][0]];
+		var angle = this.newAngles[j];
+
+		this.angles[i++][1] = angle + 720;
+		this.rotateMatrix(axis, angle);
+	}
+	this.newAngles.length = 0;
+	this.onTransitionEnd = handleEndShuffling2;
+	this.applyTransform();
+}
+function handleEndMoving()
+{
+	if (this.rotating) {
+		if (rotating > 0) --rotating;
+		this.rotating = false;
+	}
+	if (--this.moving === 0)
+		this.disableTransition();
+	if (--moving === 0)
+		if (solving)
+			solveRotateBlock();
+		else
+			unsetDisabled(elementsDisabledForDrag);
+}
+function handleEndRotation()
+{
+	if (rotating > 0) --rotating;
+	this.rotating = false;
+	if (solving)
+		if (--solving)
+			solveNextBlock();
+		else
+			solveDone();
+}
+function handleTransitionEnd(event)
+{
+	var blockNode = event.currentTarget;
+	var blockIndex = parseInt(blockNode.id.substr(5), 10);
+	var block = blockArray[blockIndex];
+
+	if (block.onTransitionEnd)
+		block.onTransitionEnd();
+
+	return false;
+}
+function rotateSavedAngle(block)
+{
+	block.angles[block.angles.length - 1][1] += block.savedAngle;
+	block.enableRotateTransition();
+	block.applyTransform();
+	block.savedAngle = 0;
+}
+function handleKeyDown(event)
+{
+	var axis, angle, rotationMatrix;
+
+	var key = event.key || event.keyIdentifier;
+	switch (key) {
+		case 'ArrowLeft':
+		case 'Left':
+			if (event.shiftKey)
+				axis = yAxis, angle = -90, rotationMatrix = rotateYMinus90;
+			else
+				axis = zAxis, angle = -90, rotationMatrix = rotateZMinus90;
+			break;
+		case 'ArrowRight':
+		case 'Right':
+			if (event.shiftKey)
+				axis = yAxis, angle = 90, rotationMatrix = rotateY90;
+			else
+				axis = zAxis, angle = 90, rotationMatrix = rotateZ90;
+			break;
+		case 'ArrowDown':
+		case 'Down':
+			axis = xAxis, angle = -90, rotationMatrix = rotateXMinus90;
+			break;
+		case 'ArrowUp':
+		case 'Up':
+			axis = xAxis, angle = 90, rotationMatrix = rotateX90;
+			break;
+		case 'U+0020':
+		case ' ':
+			event.preventDefault();
+			event.stopPropagation();
+			checkForParty();
+			return false;
+		default:
+			return true;
+	}
+
+	event.preventDefault();
+	event.stopPropagation();
+
+	if (shuffling || solving)
+		return false;
+
+	if (gameMode && axis !== zAxis)
+		return false;
+
+	rotateBlock(axis, angle, rotationMatrix);
+	return false;
+}
+function rotateBlock(axis, angle, rotationMatrix)
+{
+	var block = blockArray[dragIndex];
+	var angles = block.angles;
+	var matrix = block.matrix;
+
+	if (block.savedAngle !== 0) return;
+
+	var resetSolver = (axis !== zAxis);
+
+	// Multiply <axis> (representing the screen's X, Y, or Z axis) by the
+	// transpose of the block's rotation matrix to determine the corresponding
+	// axis (given by <x>, <y>, and <z>) in the block's local coordinate system.
+
+	var x = axis[0] * matrix[0] + axis[1] * matrix[1] + axis[2] * matrix[2];
+	var y = axis[0] * matrix[4] + axis[1] * matrix[5] + axis[2] * matrix[6];
+	var z = axis[0] * matrix[8] + axis[1] * matrix[9] + axis[2] * matrix[10];
+
+	if (x !== 0)
+		axis = 'X', angle *= x;
+	else if (y !== 0)
+		axis = 'Y', angle *= y;
+	else
+		axis = 'Z', angle *= z;
+
+	if (angles.length > 0 && angles[angles.length - 1][0] === axis)
+	{
+		if (!block.rotating) ++rotating;
+		angles[angles.length - 1][1] += angle;
+		block.matrixMultiply(rotationMatrix);
+		block.enableRotateTransition();
+		block.applyTransform();
+	}
+	else if (block.rotating || block.moving) return;
+	else {
+		block.normalizeAngles();
+		if (angles.length === 0 || angles[angles.length - 1][0] !== axis)
+			angles.push([axis, 0]);
+
+		++rotating;
+		block.savedAngle = angle;
+		block.disableTransition();
+		block.applyTransform();
+		block.matrixMultiply(rotationMatrix);
+		setTimeout(rotateSavedAngle, 100, block);
+	}
+
+	if (resetSolver)
+		solverPartyList.length = 0;
+}
+function preCheckOverlap()
+{
+	for (var blockIndex = 0; blockIndex < blockArray.length; ++blockIndex)
+	{
+		var block = blockArray[blockIndex];
+		block.left = parseInt(block.node.style.left, 10);
+		block.top = parseInt(block.node.style.top, 10);
+		block.right = block.left + blockSize + 1;
+		block.bottom = block.top + blockSize + 1;
+		block.startLeft = block.left;
+		block.startTop = block.top;
+		block.checkOverlap = false;
+	}
+}
+function checkOverlap(fixedBlockIndex)
+{
+	var block = blockArray[fixedBlockIndex];
+
+	var fixedLeft = block.left;
+	var fixedTop = block.top;
+	var fixedRight = block.right;
+	var fixedBottom = block.bottom;
+
+	for (var blockIndex = 0; blockIndex < blockArray.length; ++blockIndex)
+	{
+		if (blockIndex === fixedBlockIndex) continue;
+
+		block = blockArray[blockIndex];
+		if (block.left > fixedRight) continue;
+		if (block.right < fixedLeft) continue;
+		if (block.top > fixedBottom) continue;
+		if (block.bottom < fixedTop) continue;
+
+		var xSign, ySign;
+		var deltaX, deltaY;
+
+		if (block.left < fixedLeft) {
+			deltaX = block.right - fixedLeft + 1; xSign = -1;
+		} else {
+			deltaX = fixedRight - block.left + 1; xSign = 1;
+		}
+		if (block.top < fixedTop) {
+			deltaY = block.bottom - fixedTop + 1; ySign = -1;
+		} else {
+			deltaY = fixedBottom - block.top + 1; ySign = 1;
+		}
+		if (deltaX < deltaY) {
+			deltaX *= xSign;
+			block.left += deltaX;
+			block.right += deltaX;
+		} else {
+			deltaY *= ySign;
+			block.top += deltaY;
+			block.bottom += deltaY;
+		}
+
+		block.checkOverlap = true;
+	}
+
+	for (blockIndex = 0; blockIndex < blockArray.length; ++blockIndex)
+	{
+		block = blockArray[blockIndex];
+		if (block.checkOverlap)
+		{
+			block.checkOverlap = false;
+			checkOverlap(blockIndex);
+		}
+	}
+}
+function postCheckOverlap()
+{
+	moving = 0;
+	var transitionList = [];
+
+	for (var blockIndex = 0; blockIndex < blockArray.length; ++blockIndex)
+	{
+		var block = blockArray[blockIndex];
+
+		transitionList.length = 0;
+
+		if (block.left !== block.startLeft) {
+			block.node.style.left = block.left + 'px';
+			transitionList.push('left 0.4s ease');
+		}
+		if (block.top !== block.startTop) {
+			block.node.style.top = block.top + 'px';
+			transitionList.push('top 0.4s ease');
+		}
+		if (blockIndex === dragIndex) {
+			transitionList.push('-webkit-transform 0.4s ease');
+			block.node.style.webkitTransition = transitionList.join(', ');
+			transitionList.pop();
+			transitionList.push('transform 0.4s ease');
+			block.node.style.transition = transitionList.join(', ');
+			block.onTransitionEnd = handleEndMoving;
+			block.zCoord = dropZCoord;
+			block.applyTransform();
+		} else if (transitionList.length > 0) {
+			var transition = transitionList.join(', ');
+			block.node.style.webkitTransition = transition;
+			block.node.style.transition = transition;
+			block.onTransitionEnd = handleEndMoving;
+		}
+
+		block.moving = transitionList.length;
+		moving += block.moving;
+	}
+}
+function dropBlock()
+{
+	dragNode = null;
+	preCheckOverlap();
+	checkOverlap(dragIndex);
+	postCheckOverlap();
+}
+function endDrag(event)
+{
+	event.preventDefault();
+	event.stopPropagation();
+	document.removeEventListener('mousemove', handleDrag, false);
+	document.removeEventListener('mouseup', endDrag, false);
+	dropBlock();
+	return false;
+}
+function handleDrag(event)
+{
+	event.preventDefault();
+	event.stopPropagation();
+	dragNode.style.left = (event.clientX + dragDeltaX) + 'px';
+	dragNode.style.top = (event.clientY + dragDeltaY) + 'px';
+	return false;
+}
+function startDrag(event)
+{
+	event.preventDefault();
+	event.stopPropagation();
+	if (moving || shuffling || solving) return false;
+	dragNode = event.currentTarget;
+	dragIndex = parseInt(dragNode.id.substr(5), 10);
+	var dragStartX = parseInt(dragNode.style.left, 10);
+	var dragStartY = parseInt(dragNode.style.top, 10);
+	dragDeltaX = dragStartX - event.clientX;
+	dragDeltaY = dragStartY - event.clientY;
+	var block = blockArray[dragIndex];
+	block.enableGrabTransition();
+	block.applyTransform();
+	setDisabled(elementsDisabledForDrag);
+	document.addEventListener('mousemove', handleDrag, false);
+	document.addEventListener('mouseup', endDrag, false);
+	return false;
+}
+function solveDone()
+{
+	unsetDisabled(elementsDisabledForSolve);
+
+	if (++solverPartyIndex === solverPartyList.length)
+		solverPartyIndex = 0;
+}
+function solveRotateBlock()
+{
+	var angle, rotationMatrix;
+
+	switch (blockArray[dragIndex].solveRotation)
+	{
+		case 0: if (--solving)
+				solveNextBlock();
+			else
+				solveDone();
+			return;
+		case 1: angle = 90;
+			rotationMatrix = rotateZ90;
+			break;
+		case 2: angle = 180;
+			rotationMatrix = rotateZ180;
+			break;
+		case 3: angle = -90;
+			rotationMatrix = rotateZMinus90;
+			break;
+	}
+
+	rotateBlock(zAxis, angle, rotationMatrix);
+}
+function solveDropBlock()
+{
+	if (--this.moving === 0) dropBlock();
+}
+function solveMoveBlock()
+{
+	var transitionList = [];
+	if (this.top !== this.solveTop) {
+		this.node.style.top = this.solveTop + 'px';
+		transitionList.push('top 0.4s ease');
+	}
+	if (this.left !== this.solveLeft) {
+		this.node.style.left = this.solveLeft + 'px';
+		transitionList.push('left 0.4s ease');
+	}
+	var transition = transitionList.join(', ');
+	this.node.style.webkitTransition = transition;
+	this.node.style.transition = transition;
+	this.onTransitionEnd = solveDropBlock;
+	this.moving = transitionList.length;
+}
+function solveNextBlock()
+{
+	dragIndex = solverBlockList.pop();
+	var block = blockArray[dragIndex];
+	if (block.solveTop !== block.top || block.solveLeft !== block.left)
+	{
+		dragNode = block.node;
+		block.enableGrabTransition();
+		block.onTransitionEnd = solveMoveBlock;
+		block.applyTransform();
+	}
+	else solveRotateBlock();
+}
+function isParty()
+{
+	var i, v0, v1, v2, v3;
+
+	switch (solverIconList.length)
+	{
+		case 1:
+		case 2: return true;
+		case 3: for (i = 0; i < 3; ++i)
+			{
+				v0 = solverIconList[0][i];
+				v1 = solverIconList[1][i];
+				v2 = solverIconList[2][i];
+				if (v0 === v1 && v0 === v2) continue;
+				if (v0 !== v1 && v0 !== v2 && v1 !== v2) continue;
+				return false;
+			}
+			return true;
+		case 4: for (i = 0; i < 3; ++i)
+			{
+				v0 = solverIconList[0][i];
+				v1 = solverIconList[1][i];
+				v2 = solverIconList[2][i];
+				v3 = solverIconList[3][i];
+				if (v0 === v1 && v0 === v2 && v0 === v3) continue;
+				if (v0 !== v1 && v0 !== v2 && v0 !== v3 &&
+					v1 !== v2 && v1 !== v3 && v2 !== v3) continue;
+				return false;
+			}
+			return true;
+	}
+
+	return false;
+}
+function solve(blockIndex, partySize)
+{
+	var maxBlockIndex = blockArray.length - partySize;
+
+	for (; blockIndex <= maxBlockIndex; ++blockIndex)
+	{
+		var block = blockArray[blockIndex];
+		var iconList = block.spec[block.face];
+
+		for (var corner = 0; corner < 4; ++corner)
+		{
+			solverIconList.push(iconList[corner]);
+			if (isParty())
+			{
+				solverLocationList.push([blockIndex, corner]);
+				if (partySize === 1)
+					solverPartyList.push(solverLocationList.slice());
+				else
+					solve(blockIndex + 1, partySize - 1);
+				solverLocationList.pop();
+			}
+			solverIconList.pop();
+		}
+	}
+}
+function getIcon(location)
+{
+	var blockIndex = location[0];
+	var block = blockArray[blockIndex];
+	var corner = location[1];
+	return block.spec[block.face][corner];
+}
+function getPartyReason(locationList)
+{
+	var icon1 = getIcon(locationList[0]);
+	var icon2 = getIcon(locationList[1]);
+	var reasonList = [];
+	for (var i = 0; i < 3; ++i)
+		if (icon1[i] === icon2[i])
+			reasonList.push('all the same ' + traitName[i]);
+		else
+			reasonList.push('all different ' + traitName[i] + 's');
+	return reasonList.join(', ');
+}
+function displayWidth()
+{
+	return document.documentElement.clientWidth; // or window.innerWidth?
+}
+function displayHeight()
+{
+	return document.documentElement.clientHeight; // or window.innerHeight?
+}
+function centerBelowControlBox(reasonBox)
+{
+	var controlBox = document.getElementById('controlBox').getBoundingClientRect();
+
+	reasonBox.style.display = 'block';
+	reasonBox.style.top = Math.ceil(controlBox.bottom + window.scrollY + 4) + 'px';
+	reasonBox.style.left = Math.floor((displayWidth() - reasonBox.clientWidth) / 2) + 'px';
+}
+function hideSolverReason()
+{
+	document.getElementById('solverReasonBox').style.display = 'none';
+}
+function showSolverReason()
+{
+	var reason = getPartyReason(solverPartyList[solverPartyIndex]);
+	var partyNum = solverPartyIndex + 1;
+	var numParties = solverPartyList.length;
+
+	reason = reason.slice(0, 1).toUpperCase() + reason.slice(1);
+
+	var mdash = ' \u2014 ';
+	var textNode = document.getElementById('solverReason').firstChild;
+	var reasonBox = document.getElementById('solverReasonBox');
+
+	textNode.nodeValue = 'Party ' + partyNum + '/' + numParties + mdash + reason;
+
+	centerBelowControlBox(reasonBox);
+}
+function makeParty()
+{
+	setDisabled(elementsDisabledForSolve);
+
+	var locationList = solverPartyList[solverPartyIndex];
+
+	var centerY = Math.floor(displayHeight() / 2);
+	var centerX = Math.floor(displayWidth() / 2);
+
+	var deltaY = [-(blockSize + 1), -(blockSize + 1), 1, 1];
+	var deltaX = [-(blockSize + 1), 1, -(blockSize + 1), 1];
+	var desiredRotations = [2, 3, 1, 0];
+
+	solverBlockList.length = 0;
+
+	for (var i = 3; i >= 0; --i)
+	{
+		var blockIndex = locationList[i][0];
+		var block = blockArray[blockIndex];
+		block.top = parseInt(block.node.style.top, 10);
+		block.left = parseInt(block.node.style.left, 10);
+		block.solveTop = centerY + deltaY[i];
+		block.solveLeft = centerX + deltaX[i];
+		block.setSolveRotation(desiredRotations[i], locationList[i][1]);
+
+		solverBlockList.push(blockIndex);
+	}
+
+	showSolverReason();
+	solving = solverBlockList.length;
+	solveNextBlock();
+
+	if (solving === 0)
+		if (solverPartyList.length === 1)
+			alert("There's only this one solution.");
+		else
+			makeParty();
+}
+function clickSolve()
+{
+	if (rotating)
+		return false;
+
+	hidePartyReason();
+
+	if (solverPartyList.length === 0)
+	{
+		for (var i = 0; i < blockArray.length; ++i)
+			blockArray[i].getFaceAndRotation();
+
+		solverIconList.length = 0;
+		solverLocationList.length = 0;
+		solverPartyIndex = 0;
+		solve(0, 4);
+
+		if (solverPartyList.length === 0) {
+			alert('There are no solutions!');
+			return false;
+		}
+	}
+
+	makeParty();
+	return false;
+}
+function addReasonTableRow1(reasonTable, svgNode)
+{
+	var trNode;
+	var tdNode;
+
+	trNode = document.createElement('tr');
+	trNode.className = 'rt1';
+
+	tdNode = document.createElement('td');
+	tdNode.rowSpan = 5;
+	tdNode.appendChild(svgNode);
+	trNode.appendChild(tdNode);
+
+	tdNode = document.createElement('td');
+	tdNode.colSpan = 2;
+	trNode.appendChild(tdNode);
+
+	reasonTable.appendChild(trNode);
+}
+function addReasonTableRow5(reasonTable)
+{
+	var trNode;
+	var tdNode;
+
+	trNode = document.createElement('tr');
+	trNode.className = 'rt1';
+
+	tdNode = document.createElement('td');
+	tdNode.colSpan = 2;
+	trNode.appendChild(tdNode);
+
+	reasonTable.appendChild(trNode);
+}
+function addReasonRows(reasonTable, checkMark, checkMarkClass, reasonList)
+{
+	var trNode;
+	var tdNode;
+
+	for (var i = 0; i < reasonList.length; ++i)
+	{
+		trNode = document.createElement('tr');
+		trNode.className = 'rt2';
+
+		tdNode = document.createElement('td');
+		tdNode.className = checkMarkClass;
+		tdNode.appendChild(document.createTextNode(checkMark));
+		trNode.appendChild(tdNode);
+
+		tdNode = document.createElement('td');
+		tdNode.appendChild(document.createTextNode(reasonList[i]));
+		trNode.appendChild(tdNode);
+
+		reasonTable.appendChild(trNode);
+	}
+}
+function getReasonList(iconList, validTraits, invalidTraits)
+{
+	var allDifferent = [];
+
+	for (var traitIndex = 0; traitIndex < 3; ++traitIndex)
+	{
+		var result = 1;
+		var traitCount = [0, 0, 0, 0];
+
+		for (var iconIndex = 0; iconIndex < 4; ++iconIndex)
+		{
+			var count = ++traitCount[iconList[iconIndex][traitIndex]];
+			if (count > result)
+				result = count;
+		}
+		var trait = traitName[traitIndex];
+		if (result === 1)
+			allDifferent.push("You have all different " + trait + "s.");
+		else if (result === 4)
+			validTraits.push("You have all the same " + trait + ".");
+		else
+			invalidTraits.push("You need all the same " + trait + " or all different " + trait + "s.");
+	}
+
+	var numSame = validTraits.length;
+	var numDifferent = allDifferent.length;
+
+	for (var i = 0; i < allDifferent.length; ++i)
+		validTraits.push(allDifferent[i]);
+
+	return 3 * numSame + 4 * numDifferent;
+}
+function createReasonSVG(iconList)
+{
+	var svgNode = document.createElementNS(svgNS, 'svg');
+
+	svgNode.setAttribute('width', 100);
+	svgNode.setAttribute('height', 100);
+	svgNode.setAttribute('viewBox', '0 0 280 280');
+
+	var savedXOffset = xOffset;
+	var savedYOffset = yOffset;
+
+	xOffset = [140, 0, 0, 140];
+	yOffset = [140, 140, 0, 0];
+
+	svgNode.appendChild(draw(2, iconList[0][0], iconList[0][1], iconList[0][2]));
+	svgNode.appendChild(draw(3, iconList[1][0], iconList[1][1], iconList[1][2]));
+	svgNode.appendChild(draw(1, iconList[2][0], iconList[2][1], iconList[2][2]));
+	svgNode.appendChild(draw(0, iconList[3][0], iconList[3][1], iconList[3][2]));
+
+	xOffset = savedXOffset;
+	yOffset = savedYOffset;
+
+	return svgNode;
+}
+function createTopDiv(textClass, text)
+{
+	var topSpan = document.createElement('span');
+	topSpan.className = textClass;
+	topSpan.appendChild(document.createTextNode(text));
+
+	var topDiv = document.createElement('div');
+	topDiv.className = 'prTop';
+	topDiv.appendChild(topSpan);
+	return topDiv;
+}
+function createReasonDiv(reason)
+{
+	var validTraits = [];
+	var invalidTraits = [];
+
+	reason.points = getReasonList(solverIconList, validTraits, invalidTraits);
+	reason.div = document.createElement('div');
+
+	if (reason.points > 8) {
+		reason.div.className = 'partyReason';
+		reason.div.appendChild(createTopDiv('checkMark', 'Party!!!'));
+	} else {
+		reason.div.className = 'partyReason noParty';
+		reason.div.appendChild(createTopDiv('xMark', 'Not a Party!'));
+	}
+
+	var svgNode = createReasonSVG(solverIconList);
+
+	var reasonTable = document.createElement('table');
+	reasonTable.className = 'reasonTable';
+
+	addReasonTableRow1(reasonTable, svgNode);
+	addReasonRows(reasonTable, '\u2713', 'checkMark', validTraits);
+	addReasonRows(reasonTable, '\u00D7', 'xMark', invalidTraits);
+	addReasonTableRow5(reasonTable);
+
+	reason.div.appendChild(reasonTable);
+}
+function addHelpRow(table, text)
+{
+	var trNode = document.createElement('tr');
+	var tdNode = document.createElement('td');
+
+	if (text === null) {
+		trNode.className = 'rt1';
+	} else {
+		trNode.className = 'rt2';
+		tdNode.appendChild(document.createTextNode(text));
+	}
+
+	trNode.appendChild(tdNode);
+	table.appendChild(trNode);
+}
+function createHelpDiv()
+{
+	var helpDiv = document.createElement('div');
+	helpDiv.className = 'partyReason noParty';
+	helpDiv.appendChild(createTopDiv('xMark', 'Try Again!'));
+
+	var table = document.createElement('table');
+	table.className = 'reasonTable';
+
+	addHelpRow(table, null);
+	addHelpRow(table, 'Find four icons on different blocks that form a party.');
+	addHelpRow(table, 'Put the four blocks together in a square.');
+	addHelpRow(table, 'Rotate them so the party icons meet in the middle.');
+	addHelpRow(table, null);
+
+	helpDiv.appendChild(table);
+	return helpDiv;
+}
+function preCheckForParty()
+{
+	var numBlocks = blockArray.length;
+	for (var i = 0; i < numBlocks; ++i)
+	{
+		var block = blockArray[i];
+		block.left = parseInt(block.node.style.left, 10);
+		block.top = parseInt(block.node.style.top, 10);
+		block.right = block.left + blockSize + 1;
+		block.bottom = block.top + blockSize + 1;
+		block.getFaceAndRotation();
+		block.gameRotate = null;
+	}
+}
+function checkAdjacentBlocks()
+{
+	var block1, block2, deltaX, deltaY;
+	var tolerance = Math.max(Math.ceil(blockSize / 5), 10);
+	var numBlocks = blockArray.length;
+
+	for (var i1 = 0; i1 < numBlocks; ++i1)
+	{
+		block1 = blockArray[i1];
+		block1.blockRight = null;
+		block1.blockBelow = null;
+		for (var i2 = 0; i2 < numBlocks; ++i2)
+			if (i2 !== i1)
+			{
+				block2 = blockArray[i2];
+
+				deltaX = block2.left - block1.right;
+				deltaY = block2.top - block1.top;
+				if (deltaX > 0 && deltaX < tolerance && deltaY > -tolerance && deltaY < tolerance)
+					block1.blockRight = block2;
+
+				deltaX = block2.left - block1.left;
+				deltaY = block2.top - block1.bottom;
+				if (deltaY > 0 && deltaY < tolerance && deltaX > -tolerance && deltaX < tolerance)
+					block1.blockBelow = block2;
+			}
+	}
+}
+function checkAddIcon(block, position)
+{
+	var corner = (4 + position - block.rotation) % 4;
+	solverIconList.push(block.spec[block.face][corner]);
+}
+function higherReason(reason1, reason2)
+{
+	if (reason2 === null) return false;
+
+	var diff = reason1.points - reason2.points;
+	if (diff > 0) return true;
+	if (diff < 0) return false;
+
+	diff = reason2.top - reason1.top;
+	if (diff > 0) return true;
+	if (diff < 0) return false;
+
+	diff = reason2.left - reason1.left;
+	if (diff > 0) return true;
+
+	return false;
+}
+function hidePartyReason()
+{
+	document.getElementById('partyReasonBox').style.display = 'none';
+
+	if (gameMode && solving)
+	{
+		for (var i = 0; i < blockArray.length; ++i)
+		{
+			var rotate = blockArray[i].gameRotate;
+			if (rotate !== null)
+			{
+				dragIndex = i;
+				rotateBlock(rotate.axis, rotate.angle, rotate.matrix);
+			}
+		}
+		solving = 0;
+	}
+}
+function clearPartyReasonBox()
+{
+	var reasonBox = document.getElementById('partyReasonBox');
+
+	var numChildrenToRemove = reasonBox.children.length - 1;
+
+	for (var i = 0; i < numChildrenToRemove; ++i)
+		reasonBox.removeChild(reasonBox.children[0]);
+
+	return reasonBox;
+}
+function checkForParty()
+{
+	if (rotating || dragNode || moving || shuffling || solving)
+		return;
+
+	hideSolverReason();
+	preCheckForParty();
+	checkAdjacentBlocks();
+
+	var gameRotateLeft = { axis: yAxis, angle: -90, matrix: rotateYMinus90 };
+	var gameRotateRight = { axis: yAxis, angle: 90, matrix: rotateY90 };
+
+	var reasonBox = clearPartyReasonBox();
+	var bottomDiv = reasonBox.children[0];
+	var firstReason = null;
+
+	var numBlocks = blockArray.length;
+	for (var i = 0; i < numBlocks; ++i)
+	{
+		var block1 = blockArray[i];
+		var block2 = block1.blockRight;
+		var block3 = block1.blockBelow;
+		if (block2 === null || block3 === null) continue;
+		var block4 = block2.blockBelow;
+		if (block4 === null || block4 !== block3.blockRight) continue;
+
+		solverIconList.length = 0;
+		checkAddIcon(block1, 2);
+		checkAddIcon(block2, 3);
+		checkAddIcon(block3, 1);
+		checkAddIcon(block4, 0);
+
+		var reason = { points: 0, top: block1.top, left: block1.left, div: null, next: null };
+		createReasonDiv(reason);
+
+		var nextReason = firstReason;
+		var prevReason = null;
+		while (higherReason(reason, nextReason))
+		{
+			prevReason = nextReason;
+			nextReason = nextReason.next;
+		}
+
+		reason.next = nextReason;
+		if (prevReason === null)
+			firstReason = reason;
+		else
+			prevReason.next = reason;
+
+		if (nextReason === null)
+			reasonBox.insertBefore(reason.div, bottomDiv);
+		else
+			reasonBox.insertBefore(reason.div, nextReason.div);
+
+		if (gameMode && reason.points > 8) {
+			var points = reason.points - 8;
+			var textNode = document.createTextNode('(' + points + ' points)');
+			reason.div.firstChild.appendChild(textNode);
+			gameScore += points;
+			updateGameScore();
+			solving = 4; // Hack to disable drag, rotate, and checkForParty()
+			block1.gameRotate = gameRotateLeft;
+			block3.gameRotate = gameRotateLeft;
+			block2.gameRotate = gameRotateRight;
+			block4.gameRotate = gameRotateRight;
+		}
+	}
+
+	if (firstReason === null)
+		reasonBox.insertBefore(createHelpDiv(), bottomDiv);
+
+	var backButton = document.getElementById('backPartyReason');
+	var nextButton = document.getElementById('nextPartyReason');
+
+	if (reasonBox.children.length === 2) {
+		backButton.style.display = 'none';
+		nextButton.style.display = 'none';
+	} else {
+		topReason = reasonBox.children.length - 2;
+		maxReason = topReason;
+		backButton.style.display = 'inline';
+		nextButton.style.display = 'inline';
+		backButton.disabled = true;
+		nextButton.disabled = false;
+	}
+
+	var closeButton = document.getElementById('hidePartyReason');
+	if (solving)
+		closeButton.value = 'KEEP PLAYING';
+	else
+		closeButton.value = 'CLOSE';
+
+	centerBelowControlBox(reasonBox);
+}
+function showPrevReason()
+{
+	var reasonBox = document.getElementById('partyReasonBox');
+	reasonBox.children[++topReason].style.left = '0px';
+
+	document.getElementById('nextPartyReason').disabled = false;
+	if (topReason === maxReason)
+		document.getElementById('backPartyReason').disabled = true;
+}
+function showNextReason()
+{
+	var reasonBox = document.getElementById('partyReasonBox');
+	reasonBox.children[topReason--].style.left = reasonBox.clientWidth + 'px';
+
+	document.getElementById('backPartyReason').disabled = false;
+	if (topReason === 0)
+		document.getElementById('nextPartyReason').disabled = true;
+}
+function showGameOver()
+{
+	stopGame();
+	shuffling = 1; // Hack to disable drag, rotate, and checkForParty()
+
+	var gameOverBox = document.getElementById('gameOverBox');
+
+	gameOverBox.style.display = 'block';
+	gameOverBox.style.top = Math.floor((displayHeight() - gameOverBox.clientHeight - 4) / 2) + 'px';
+	gameOverBox.style.left = Math.floor((displayWidth() - gameOverBox.clientWidth - 4) / 2) + 'px';
+}
+function hideGameOver()
+{
+	document.getElementById('gameOverBox').style.display = 'none';
+
+	shuffling = 0;
+	enablePlay();
+}
+function updateGameScore()
+{
+	document.getElementById('gameScore').firstChild.nodeValue = gameScore;
+}
+function updateHighScore()
+{
+	highScore = gameScore;
+	document.getElementById('highScore').firstChild.nodeValue = highScore;
+}
+function setGameTime(timeRemaining)
+{
+	var minutes = Math.floor(timeRemaining / 60);
+	if (minutes < 10)
+		minutes = '0' + minutes;
+
+	var seconds = timeRemaining % 60;
+	if (seconds < 10)
+		seconds = '0' + seconds;
+
+	gameTimeNode.nodeValue = minutes + ':' + seconds;
+}
+function updateGameTime()
+{
+	var timeRemaining = Math.round((gameEndTime - Date.now()) / 1000);
+	if (timeRemaining > 0)
+		setGameTime(timeRemaining);
+	else
+		showGameOver();
+}
+function startGameTimer()
+{
+	gameEndTime = Date.now() + gameDuration * 1000;
+	gameTimer = setInterval(updateGameTime, 1000);
+}
+function stopGame()
+{
+	if (gameTimer === null) return;
+	clearInterval(gameTimer);
+	gameTimer = null;
+
+	setGameTime(0);
+	if (gameScore > highScore) updateHighScore();
+
+	setDisabled(['playButton']);
+
+	solving = 0;
+	hidePartyReason();
+}
+function enablePlay()
+{
+	gameMode = false;
+	document.getElementById('playButton').value = 'PLAY';
+	unsetDisabled(elementsDisabledForPlay);
+	unsetDisabled(['playButton']);
+}
+function clickPlay()
+{
+	if (gameMode)
+	{
+		stopGame();
+		enablePlay();
+	}
+	else if (!rotating)
+	{
+		gameMode = true;
+		document.getElementById('playButton').value = 'STOP';
+		setDisabled(elementsDisabledForPlay);
+
+		gameScore = 0;
+		updateGameScore();
+		setGameTime(gameDuration);
+		clickShuffle();
+	}
+	return false;
+}
+function GatherHelper()
+{
+	this.multiplier = blockSize + Math.floor(blockSize / 4);
+
+	var height = this.multiplier * Math.floor((blockArray.length - 1) / 4) + blockSize;
+	var width = this.multiplier * Math.min(blockArray.length - 1, 3) + blockSize;
+
+	var z = dragZCoord + blockSize / 2;
+	var perspectiveMultiplier = perspective === 0 ? 1 : perspective / (perspective - z);
+
+	var spaceWidth = Math.ceil(width * perspectiveMultiplier) + 16;
+	var spaceHeight = Math.ceil(height * perspectiveMultiplier) + 16;
+
+	spaceWidth = Math.max(spaceWidth, displayWidth());
+	spaceHeight = Math.max(spaceHeight, displayHeight());
+
+	document.body.style.width = spaceWidth + 'px';
+	document.body.style.height = spaceHeight + 'px';
+
+	this.top = Math.floor(spaceHeight / 2) - Math.floor(height / 2);
+	this.left = Math.floor(spaceWidth / 2) - Math.floor(width / 2);
+}
+GatherHelper.prototype.setTopLeft = function(blockNode, blockIndex)
+{
+	var top = this.top + this.multiplier * Math.floor(blockIndex / 4);
+	var left = this.left + this.multiplier * (blockIndex % 4);
+
+	blockNode.style.top = top + 'px';
+	blockNode.style.left = left + 'px';
+}
+function transformFace(faceNode, faceIndex)
+{
+	var transform = 'translateZ(' + (blockSize / 2) + 'px)';
+	var axis = faceRotations[faceIndex][0];
+	var angle = faceRotations[faceIndex][1];
+	if (angle !== 0)
+		transform = 'rotate' + axis + '(' + angle + 'deg) ' + transform;
+	faceNode.style.webkitTransform = transform;
+	faceNode.style.transform = transform;
+}
+function setSpaceDimensions(newPerspective, sizeRatio)
+{
+	var maxX = 0;
+	var maxY = 0;
+	var oldWidth = parseInt(document.body.style.width, 10);
+	var oldHeight = parseInt(document.body.style.height, 10);
+	var perspectiveOriginX = Math.floor(oldWidth / 2);
+	var perspectiveOriginY = Math.floor(oldHeight / 2);
+	var block, top, left, absDeltaY, absDeltaX;
+
+	for (var blockIndex = 0; blockIndex < blockArray.length; ++blockIndex)
+	{
+		block = blockArray[blockIndex];
+		top = parseInt(block.node.style.top, 10);
+		left = parseInt(block.node.style.left, 10);
+		block.deltaY = Math.ceil((top - perspectiveOriginY) * sizeRatio);
+		block.deltaX = Math.ceil((left - perspectiveOriginX) * sizeRatio);
+		absDeltaY = Math.abs(block.deltaY);
+		absDeltaX = Math.abs(block.deltaX);
+		if (absDeltaY > maxY) maxY = absDeltaY;
+		if (absDeltaX > maxX) maxX = absDeltaX;
+		absDeltaY = Math.abs(block.deltaY + blockSize);
+		absDeltaX = Math.abs(block.deltaX + blockSize);
+		if (absDeltaY > maxY) maxY = absDeltaY;
+		if (absDeltaX > maxX) maxX = absDeltaX;
+	}
+
+	// The perspective multiplier is d / (d - z)
+	// (See http://www.w3.org/TR/css-transforms-1/#3d-transform-rendering)
+	// "d" is the distance from the eye to the z=0 plane.
+	// (This is also the value of the CSS perspective property, e.g. 1200 pixels)
+	// "z" is the z coordinate for which we're calculating the perspective multiplier.
+	// We want to calculate the multiplier for the maximum possible z coordinate,
+	// which is the z coordinate of the front face of a block that's being dragged.
+	// A block that's being dragged is raised by "dragZCoord" pixels,
+	// and the front face is always already raised by (blockSize / 2) pixels.
+
+	var z = dragZCoord + blockSize / 2;
+	var perspectiveMultiplier = newPerspective === 0 ? 1 : newPerspective / (newPerspective - z);
+
+	var newWidth = Math.ceil(2 * perspectiveMultiplier * maxX);
+	var newHeight = Math.ceil(2 * perspectiveMultiplier * maxY);
+
+	newWidth = Math.max(newWidth + 16, displayWidth());
+	newHeight = Math.max(newHeight + 16, displayHeight());
+
+	document.body.style.width = newWidth + 'px';
+	document.body.style.height = newHeight + 'px';
+
+	perspectiveOriginX = Math.floor(newWidth / 2);
+	perspectiveOriginY = Math.floor(newHeight / 2);
+
+	for (blockIndex = 0; blockIndex < blockArray.length; ++blockIndex)
+	{
+		block = blockArray[blockIndex];
+		top = perspectiveOriginY + block.deltaY;
+		left = perspectiveOriginX + block.deltaX;
+		block.node.style.top = top + 'px';
+		block.node.style.left = left + 'px';
+	}
+
+	setPerspective(newPerspective);
+}
+function changeSize()
+{
+	var sizeField = document.getElementById('sizeField');
+	var size = parseInt(sizeField.value, 10);
+
+	if (isNaN(size) || size != sizeField.value || size < 40 || size > 400) {
+		alert('The size is not valid. Please enter an integer between 40 and 400.');
+		return false;
+	}
+
+	var sizeRatio = size / blockSize;
+	setBlockSize(size);
+
+	var perspectiveField = document.getElementById('perspectiveField');
+	var newPerspective = Math.floor(parseInt(perspectiveField.value, 10) * sizeRatio);
+
+	perspectiveField.min = minPerspective();
+	perspectiveField.max = maxPerspective();
+	perspectiveField.value = newPerspective;
+
+	var sizeWithBorder = (blockSize + 2) + 'px';
+	for (var blockIndex = 0; blockIndex < blockArray.length; ++blockIndex)
+	{
+		var block = blockArray[blockIndex];
+		var blockNode = block.node;
+		blockNode.style.width = sizeWithBorder;
+		blockNode.style.height = sizeWithBorder;
+		block.zCoord = dropZCoord;
+		block.disableTransition();
+		block.applyTransform();
+
+		for (var faceIndex = 0; faceIndex < 6; ++faceIndex)
+		{
+			var faceNode = blockNode.children[faceIndex];
+			faceNode.setAttribute('width', blockSize);
+			faceNode.setAttribute('height', blockSize);
+			transformFace(faceNode, faceIndex);
+		}
+	}
+
+	setSpaceDimensions(Math.floor(perspective * sizeRatio), sizeRatio);
+	sizeField.blur();
+	return false;
+}
+function draw(position, shape, color, fill)
+{
+	var transformList = [];
+
+	var translateX = xOffset[position];
+	var translateY = yOffset[position];
+	if (translateX !== 0 || translateY !== 0)
+		transformList.push('translate(' + translateX + ' ' + translateY + ')');
+
+	var rotateAngle = position * 90;
+	if (rotateAngle !== 0)
+		transformList.push('rotate(' + rotateAngle + ' 70 70)');
+
+	var gNode = document.createElementNS(svgNS, 'g');
+	if (transformList.length > 0)
+		gNode.setAttribute('transform', transformList.join(' '));
+
+	shape = shapes[shape];
+	color = colors[color];
+
+	var useNode = document.createElementNS(svgNS, 'use');
+	switch (fill) {
+		case gridFill:
+			useNode.setAttributeNS(xlinkNS, 'href', '#gridFill');
+			useNode.setAttribute('clip-path', 'url(' + shape + 'Clip)');
+			useNode.setAttribute('fill', 'none');
+			break;
+		case solidFill:
+			useNode.setAttributeNS(xlinkNS, 'href', shape + 'Shape');
+			useNode.setAttribute('fill', color);
+			break;
+		case emptyFill:
+			useNode.setAttributeNS(xlinkNS, 'href', shape + 'Shape');
+			useNode.setAttribute('fill', 'none');
+			break;
+		case halfFill:
+			useNode.setAttributeNS(xlinkNS, 'href', '#halfFill');
+			useNode.setAttribute('clip-path', 'url(' + shape + 'Clip)');
+			useNode.setAttribute('fill', color);
+			break;
+	}
+	useNode.setAttribute('stroke', color);
+	gNode.appendChild(useNode);
+
+	if (fill === gridFill || fill === halfFill) {
+		useNode = document.createElementNS(svgNS, 'use');
+		useNode.setAttributeNS(xlinkNS, 'href', shape + 'Shape');
+		useNode.setAttribute('stroke', color);
+		useNode.setAttribute('fill', 'none');
+		gNode.appendChild(useNode);
+	}
+
+	return gNode;
+}
+function rotate2Normal()
+{
+	var i, j, n;
+
+	for (var blockIndex = 0; blockIndex < blockArray.length; ++blockIndex)
+	{
+		var block = blockArray[blockIndex];
+
+		n = block.angles.length - block.newAngles.length;
+		for (i = 0; i < n; ++i)
+			block.angles[i][1] = 720;
+
+		for (i = 0; i < 3; ++i)
+			for (j = 0; j < 3; ++j)
+				block.matrix[i * 4 + j] = (i === j) ? 1 : 0;
+
+		block.node.style.webkitTransition = '-webkit-transform 0.5s linear';
+		block.node.style.transition = 'transform 0.5s linear';
+		block.onTransitionEnd = handleEndShuffling1;
+		block.applyTransform();
+	}
+}
+function clickShuffle()
+{
+	if (rotating)
+		return false;
+
+	shuffling = blockArray.length;
+	setDisabled(elementsDisabledForShuffle);
+	solverPartyList.length = 0; // Reset the solver
+	hideSolverReason();
+	hidePartyReason();
+
+	var XorY = ['Y', 'X', 'Y', 'X', 'X', 'Y', 'X', 'Y'];
+
+	for (var blockIndex = 0; blockIndex < blockArray.length; ++blockIndex)
+	{
+		var block = blockArray[blockIndex];
+		var face = Math.floor(Math.random() * 6);
+		var rotation = Math.floor(Math.random() * 4);
+		var newAngles = normalizedAngles[face][rotation];
+
+		block.normalizeAngles();
+		if (block.angles.length === 0)
+			block.angles.push([XorY[blockIndex], 0]);
+
+		block.newAngles.length = 0;
+		if (newAngles.length === 0)
+		{
+			block.angles.push([XorY[blockIndex], 0]);
+			block.newAngles.push(0);
+		}
+		else for (var i = 0; i < newAngles.length; ++i)
+		{
+			block.angles.push([newAngles[i][0], 0]);
+			block.newAngles.push(newAngles[i][1]);
+		}
+
+		block.disableTransition();
+		block.applyTransform();
+	}
+
+	setTimeout(rotate2Normal, 100);
+	return false;
+}
+function clickAbout()
+{
+	var aboutBox = document.getElementById('aboutBox');
+	aboutBoxDisplayed = !aboutBoxDisplayed;
+	aboutBox.style.display = aboutBoxDisplayed ? 'block' : 'none';
+	return false;
+}
+function togglePerspective()
+{
+	var perspectiveOnOff = document.getElementById('perspectiveOnOff');
+	var perspectiveField = document.getElementById('perspectiveField');
+	if (perspectiveOnOff.checked) {
+		perspectiveField.disabled = false;
+		setSpaceDimensions(parseInt(perspectiveField.value, 10), 1);
+	} else {
+		perspectiveField.disabled = true;
+		setSpaceDimensions(0, 1);
+	}
+	perspectiveOnOff.blur();
+	return false;
+}
+function defaultPerspective()
+{
+	return Math.floor(blockSize * 7.5);
+}
+function minPerspective()
+{
+	return blockSize * 4;
+}
+function maxPerspective()
+{
+	return blockSize * 16;
+}
+function setPerspective(newPerspective)
+{
+	perspective = newPerspective;
+	if (perspective === 0) {
+		spaceNode.style.perspective = 'none';
+		spaceNode.style.webkitPerspective = '100000px';
+	} else {
+		spaceNode.style.perspective = perspective + 'px';
+		spaceNode.style.webkitPerspective = perspective + 'px';
+	}
+}
+function changePerspective()
+{
+	var perspectiveField = document.getElementById('perspectiveField');
+	var newPerspective = parseInt(perspectiveField.value, 10);
+
+	if (isNaN(newPerspective) || newPerspective != perspectiveField.value
+		|| newPerspective < minPerspective() || newPerspective > maxPerspective())
+	{
+		alert('The perspective is not valid. Please enter an integer between ' +
+			minPerspective() + ' and ' + maxPerspective() + '.');
+		return false;
+	}
+
+	setSpaceDimensions(newPerspective, 1);
+	perspectiveField.blur();
+	return false;
+}
+function addButtonHandlers()
+{
+	var handlerArray = [
+		['aboutButton',      clickAbout],
+		['closeAbout',       clickAbout],
+		['shuffleButton',    clickShuffle],
+		['solveButton',      clickSolve],
+		['playButton',       clickPlay],
+		['hideSolverReason', hideSolverReason],
+		['hidePartyReason',  hidePartyReason],
+		['backPartyReason',  showPrevReason],
+		['nextPartyReason',  showNextReason],
+		['closeGameOver',    hideGameOver]
+	];
+
+	for (var i = 0; i < handlerArray.length; ++i)
+	{
+		var element = handlerArray[i][0];
+		var handler = handlerArray[i][1];
+
+		document.getElementById(element).addEventListener('click', handler, false);
+	}
+}
+function setBlockSize(newBlockSize)
+{
+	blockSize = newBlockSize;
+	dragZCoord = Math.ceil(blockSize / 2 + blockSize / 4);
+	dropZCoord = -Math.ceil(blockSize / 2) - 2;
+}
+function init()
+{
+	blockArray = new Array(blockSpec.length);
+
+	var faceNode = document.getElementById('block0face0');
+	var blockNode = faceNode.parentNode;
+	spaceNode = blockNode.parentNode;
+
+	setBlockSize(parseInt(faceNode.getAttribute('width'), 10));
+	var viewBox = faceNode.getAttribute('viewBox');
+	setPerspective(defaultPerspective());
+
+	var gatherHelper = new GatherHelper();
+	var sizeWithBorder = (blockSize + 2) + 'px';
+	for (var blockIndex = 0; blockIndex < blockArray.length; ++blockIndex)
+	{
+		if (blockIndex > 0) {
+			blockNode = document.createElement('div');
+			blockNode.className = 'block';
+			spaceNode.appendChild(blockNode);
+		}
+		blockArray[blockIndex] = new Block(blockNode, blockIndex);
+		blockNode.id = 'block' + blockIndex;
+		blockNode.style.width = sizeWithBorder;
+		blockNode.style.height = sizeWithBorder;
+		gatherHelper.setTopLeft(blockNode, blockIndex);
+		blockNode.addEventListener('transitionend', handleTransitionEnd, false);
+		blockNode.addEventListener('mousedown', startDrag, false);
+
+		for (var faceIndex = 0; faceIndex < 6; ++faceIndex)
+		{
+			if (blockIndex > 0 || faceIndex > 0) {
+				faceNode = document.createElementNS(svgNS, 'svg');
+				faceNode.setAttribute('class', 'blockface');
+				faceNode.setAttribute('width', blockSize);
+				faceNode.setAttribute('height', blockSize);
+				faceNode.setAttribute('viewBox', viewBox);
+				blockNode.appendChild(faceNode);
+			}
+
+			var face = blockSpec[blockIndex][faceIndex];
+			for (var i = 0; i < 4; ++i)
+				faceNode.appendChild(draw(i, face[i][0], face[i][1], face[i][2]));
+
+			transformFace(faceNode, faceIndex);
+		}
+	}
+
+	var sizeField = document.getElementById('sizeField');
+	sizeField.value = blockSize;
+	sizeField.addEventListener('change', changeSize, false);
+
+	gameTimeNode = document.getElementById('gameTime').firstChild;
+
+	var perspectiveCheckbox = document.getElementById('perspectiveOnOff');
+	perspectiveCheckbox.checked = true;
+	perspectiveCheckbox.addEventListener('change', togglePerspective, false);
+
+	var perspectiveField = document.getElementById('perspectiveField');
+	perspectiveField.disabled = false;
+	perspectiveField.min = minPerspective();
+	perspectiveField.max = maxPerspective();
+	perspectiveField.value = defaultPerspective();
+	perspectiveField.addEventListener('change', changePerspective, false);
+
+	addButtonHandlers();
+	document.addEventListener('keydown', handleKeyDown, false);
+}
+</script>
+</head>
+<body onload="init()">
+
+<div id="controlBox">
+<input type="button" id="aboutButton" value="ABOUT" />
+Block Size:<input type="range" id="sizeField" min="40" max="400" value="160" />
+<input type="checkbox" id="perspectiveOnOff" checked />Perspective:<input type="range" id="perspectiveField" min="320" max="1920" value="1200" />
+<input type="button" id="shuffleButton" value="SHUFFLE" />
+<input type="button" id="solveButton" value="SOLVE" />
+</div>
+
+<div id="aboutBox">
+<p>Block Party 3D (<a href="BlockParty2D.html">2D</a>)
+&mdash; <a href="BlockParty3D.txt">Version 1.8</a> (<a href="notes/index.html">Notes</a>)
+&mdash; February 24, 2016</p>
+<p>This is an implementation of <a href="http://3pxh.com/">Three Pixel Heart's Block Party</a>
+using JavaScript, SVG, and CSS 3D transforms.</p>
+<p>Drag and rotate the blocks to make a party.</p>
+<p>A party is a collection of four icons (on different blocks) where
+all of the following are true:</p>
+<ul>
+<li>They are all the same color <b>or</b> there is one of each color.
+<li>They are all the same shape <b>or</b> there is one of each shape.
+<li>They are all the same fill <b>or</b> there is one of each fill.
+</ul>
+<p>To rotate the most recently clicked block:</p>
+<ul>
+<li>Use the left and right arrow keys to rotate around the Z axis.
+<li>Use the up and down arrow keys to rotate around the X axis.
+<li>Use shift + left and shift + right to rotate around the Y axis.
+</ul>
+<p>Press the space bar to check whether you've made a party.</p>
+
+<p>Click &quot;Play&quot; to start the timer, and try to make as many
+parties as you can before the time runs out. When you've found a party,
+press the space bar to get points. Then click &quot;Keep Playing&quot;
+to turn over the blocks involved in a party, and try to find more
+parties. Points are awarded as follows:</p>
+<ul>
+<li>4 points for a party where all three traits (color, shape, and fill) are all different.
+<li>3 points for a party where two traits are all different and one is all the same.
+<li>2 points for a party where one trait is all different and two are all the same.
+<li>1 point for a party where all three traits are all the same.
+This is not possible with the current set of blocks.
+</ul>
+<p><input type="button" id="closeAbout" value="CLOSE" /></p>
+</div>
+
+<div class="space"><div class="block"><svg id="block0face0" class="blockface" width="160" height="160" viewBox="0 0 420 420">
+<defs>
+  <path id="heartShape" stroke-width="10"
+    d="M 70,46 C 60,10 10,10 10,46 10,72 70,130 70,130 70,130 130,72 130,46 130,10 80,10 70,46 Z" />
+  <rect id="squareShape" stroke-width="10" x="10" y="10" width="120" height="120" />
+  <circle id="circleShape" stroke-width="10" cx="70" cy="70" r="60" />
+  <path id="triangleShape" stroke-width="10" d="M 70,20 L 130,130 10,130 Z" />
+  <path id="gridFill" stroke-width="4"
+    d="M 40,10 L 40,130 M 70,10 L 70,130 M 100,10 L 100,130 M 10,40 L 130,40 M 10,70 L 130,70 M 10,100 L 130,100" />
+  <rect id="halfFill" x="70" y="0" width="70" height="140" stroke-width="2" />
+  <clipPath id="heartClip"><use xlink:href="#heartShape" /></clipPath>
+  <clipPath id="squareClip"><use xlink:href="#squareShape" /></clipPath>
+  <clipPath id="circleClip"><use xlink:href="#circleShape" /></clipPath>
+  <clipPath id="triangleClip"><use xlink:href="#triangleShape" /></clipPath>
+</defs>
+</svg></div></div>
+
+<div id="solverReasonBox">
+<span id="solverReason">Party</span>
+<input type="button" id="hideSolverReason" value="CLOSE" />
+</div>
+
+<div id="partyReasonBox"><div class="prBottom">
+<input type="button" id="backPartyReason" value="&#x25C0;" />
+<input type="button" id="hidePartyReason" value="KEEP PLAYING" />
+<input type="button" id="nextPartyReason" value="&#x25B6;" />
+</div></div>
+
+<div id="gameBox">
+<input type="button" id="playButton" value="PLAY" />
+Time: <span id="gameTime">00:00</span>&nbsp;&nbsp;
+Score: <span id="gameScore">0</span>&nbsp;&nbsp;
+High Score: <span id="highScore">0</span>&nbsp;&nbsp;
+</div>
+
+<div id="gameOverBox">Game Over!<br><input type="button" id="closeGameOver" value="CLOSE" /></div>
+
+</body>
+</html>

@@ -1,0 +1,226 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>CSS Cube Folding Animation</title>
+<style type="text/css">
+body {
+	background-color: rgb(222,184,135);
+}
+.space {
+	position: absolute;
+	width: 400px;
+	height: 400px;
+
+	background-color: rgb(240,255,255); /* Azure */
+	border: 2px solid rgb(0,0,0);
+	padding-left: 5px;
+	padding-right: 5px;
+
+	-webkit-perspective: 1200px;
+	perspective: 1200px;
+}
+.space div {
+	position: absolute;
+
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+
+	-webkit-transform-origin: 0 0;
+	transform-origin: 0 0;
+}
+.cube {
+	top: 140px;
+	left: 180px;
+	width: 40px;
+	height: 40px;
+
+	-webkit-animation-name: webkitAnimateCube;
+	-webkit-animation-duration: 3s;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-timing-function: linear;
+
+	animation-name: animateCube;
+	animation-duration: 3s;
+	animation-iteration-count: infinite;
+	animation-timing-function: linear;
+}
+.face {
+	width: 100%;
+	height: 40px;
+
+	background-color: rgba(255,235,205,0.8); /* BlanchedAlmond */
+	border: 1px solid rgb(204,204,204);
+	box-shadow: inset 0 0 8px rgba(0,0,0,0.2);
+}
+@-webkit-keyframes webkitAnimateCube {
+	from { -webkit-transform-origin: 50% 50% -20px; -webkit-transform: rotateY(0deg); }
+	to { -webkit-transform-origin: 50% 50% -20px; -webkit-transform: rotateY(360deg); }
+}
+@-webkit-keyframes webkitAnimate1 {
+	from,to { -webkit-transform-origin: 100% 0; -webkit-transform: translateX(-100%) rotateY(0deg); }
+	10%,90% { -webkit-transform-origin: 100% 0; -webkit-transform: translateX(-100%) rotateY(-90deg); }
+}
+@-webkit-keyframes webkitAnimate3 {
+	from,80%,to { -webkit-transform: translateX(100%) rotateY(0deg); }
+	10%,70% { -webkit-transform: translateX(100%) rotateY(90deg); }
+}
+@-webkit-keyframes webkitAnimate456 {
+	from,60%,to { -webkit-transform: translateY(40px) rotateX(0deg); }
+	10%,50% { -webkit-transform: translateY(40px) rotateX(-90deg); }
+}
+@-webkit-keyframes webkitAnimate56 {
+	from,40%,to { -webkit-transform: translateY(50%) rotateX(0deg); }
+	10%,30% { -webkit-transform: translateY(50%) rotateX(-90deg); }
+}
+@-webkit-keyframes webkitAnimate6 {
+	from,20%,to { -webkit-transform: translateY(100%) rotateX(0deg); }
+	10% { -webkit-transform: translateY(100%) rotateX(-90deg); }
+}
+@keyframes animateCube {
+	from { transform-origin: 50% 50% -20px; transform: rotateY(0deg); }
+	to { transform-origin: 50% 50% -20px; transform: rotateY(360deg); }
+}
+@keyframes animate1 {
+	from,to { transform-origin: 100% 0; transform: translateX(-100%) rotateY(0deg); }
+	10%,90% { transform-origin: 100% 0; transform: translateX(-100%) rotateY(-90deg); }
+}
+@keyframes animate3 {
+	from,80%,to { transform: translateX(100%) rotateY(0deg); }
+	10%,70% { transform: translateX(100%) rotateY(90deg); }
+}
+@keyframes animate456 {
+	from,60%,to { transform: translateY(40px) rotateX(0deg); }
+	10%,50% { transform: translateY(40px) rotateX(-90deg); }
+}
+@keyframes animate56 {
+	from,40%,to { transform: translateY(50%) rotateX(0deg); }
+	10%,30% { transform: translateY(50%) rotateX(-90deg); }
+}
+@keyframes animate6 {
+	from,20%,to { transform: translateY(100%) rotateX(0deg); }
+	10% { transform: translateY(100%) rotateX(-90deg); }
+}
+.face1 {
+	-webkit-transform: translateX(-100%);
+	transform: translateX(-100%);
+
+	-webkit-animation-name: webkitAnimate1;
+	-webkit-animation-duration: 10s;
+	-webkit-animation-iteration-count: infinite;
+
+	animation-name: animate1;
+	animation-duration: 10s;
+	animation-iteration-count: infinite;
+}
+.face3 {
+	-webkit-transform: translateX(100%);
+	transform: translateX(100%);
+
+	-webkit-animation-name: webkitAnimate3;
+	-webkit-animation-delay: 1s;
+	-webkit-animation-duration: 10s;
+	-webkit-animation-iteration-count: infinite;
+
+	animation-name: animate3;
+	animation-delay: 1s;
+	animation-duration: 10s;
+	animation-iteration-count: infinite;
+}
+.faces456 {
+	width: 100%;
+	height: 120px;
+
+	-webkit-transform: translateY(40px);
+	transform: translateY(40px);
+
+	-webkit-animation-name: webkitAnimate456;
+	-webkit-animation-delay: 2s;
+	-webkit-animation-duration: 10s;
+	-webkit-animation-iteration-count: infinite;
+
+	animation-name: animate456;
+	animation-delay: 2s;
+	animation-duration: 10s;
+	animation-iteration-count: infinite;
+}
+.faces56 {
+	width: 100%;
+	height: 80px;
+
+	-webkit-transform: translateY(50%);
+	transform: translateY(50%);
+
+	-webkit-animation-name: webkitAnimate56;
+	-webkit-animation-delay: 3s;
+	-webkit-animation-duration: 10s;
+	-webkit-animation-iteration-count: infinite;
+
+	animation-name: animate56;
+	animation-delay: 3s;
+	animation-duration: 10s;
+	animation-iteration-count: infinite;
+}
+.face6 {
+	-webkit-transform: translateY(100%);
+	transform: translateY(100%);
+
+	-webkit-animation-name: webkitAnimate6;
+	-webkit-animation-delay: 4s;
+	-webkit-animation-duration: 10s;
+	-webkit-animation-iteration-count: infinite;
+
+	animation-name: animate6;
+	animation-delay: 4s;
+	animation-duration: 10s;
+	animation-iteration-count: infinite;
+}
+</style>
+</head>
+<body>
+
+<div class="space">
+<div class="cube">
+<div class="face face1"><svg width="40" height="40" viewBox="0 0 140 140">
+<defs>
+  <path id="heartShape" stroke-width="10"
+    d="M 70,46 C 60,10 10,10 10,46 10,72 70,130 70,130 70,130 130,72 130,46 130,10 80,10 70,46 Z" />
+  <rect id="squareShape" stroke-width="10" x="10" y="10" width="120" height="120" />
+  <circle id="circleShape" stroke-width="10" cx="70" cy="70" r="60" />
+  <path id="triangleShape" stroke-width="10" d="M 70,20 L 130,130 10,130 Z" />
+  <path id="gridFill" stroke-width="4"
+    d="M 40,10 L 40,130 M 70,10 L 70,130 M 100,10 L 100,130 M 10,40 L 130,40 M 10,70 L 130,70 M 10,100 L 130,100" />
+  <rect id="halfFill" x="70" y="0" width="70" height="140" stroke-width="2" />
+  <clipPath id="heartClip"><use xlink:href="#heartShape" /></clipPath>
+  <clipPath id="squareClip"><use xlink:href="#squareShape" /></clipPath>
+  <clipPath id="circleClip"><use xlink:href="#circleShape" /></clipPath>
+  <clipPath id="triangleClip"><use xlink:href="#triangleShape" /></clipPath>
+</defs>
+<use xlink:href="#halfFill" stroke="rgb(0,0,255)" fill="rgb(0,0,255)" clip-path="url(#circleClip)" />
+<use xlink:href="#circleShape" stroke="rgb(0,0,255)" fill="none" />
+</svg></div>
+<div class="face"><svg width="40" height="40" viewBox="0 0 140 140">
+<use xlink:href="#heartShape" stroke="rgb(255,0,0)" fill="rgb(255,0,0)" />
+</svg></div>
+<div class="face face3"><svg width="40" height="40" viewBox="0 0 140 140">
+<use xlink:href="#triangleShape" stroke="rgb(0,0,0)" fill="none" />
+</svg></div>
+<div class="faces456">
+<div class="face"><svg width="40" height="40" viewBox="0 0 140 140">
+<use xlink:href="#gridFill" stroke="rgb(255,165,0)" fill="none" clip-path="url(#heartClip)" />
+<use xlink:href="#heartShape" stroke="rgb(255,165,0)" fill="none" />
+</svg></div>
+<div class="faces56">
+<div class="face"><svg width="40" height="40" viewBox="0 0 140 140">
+<use xlink:href="#gridFill" stroke="rgb(255,165,0)" fill="none" clip-path="url(#squareClip)" />
+<use xlink:href="#squareShape" stroke="rgb(255,165,0)" fill="none" />
+</svg></div>
+<div class="face face6"><svg width="40" height="40" viewBox="0 0 140 140">
+<use xlink:href="#squareShape" stroke="rgb(255,0,0)" fill="rgb(255,0,0)" />
+</svg></div>
+</div><!-- faces56 -->
+</div><!-- faces456 -->
+</div><!-- cube -->
+</div><!-- space -->
+
+</body>
+</html>

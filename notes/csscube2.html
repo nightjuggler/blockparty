@@ -1,0 +1,154 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>CSS Cube</title>
+<style type="text/css">
+a {
+	text-decoration: none;
+}
+body {
+	background-color: rgb(222,184,135);
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+}
+#space {
+	-webkit-perspective: 1200px;
+	perspective: 1200px;
+}
+#cube {
+	position: absolute;
+	width: 160px;
+	height: 160px;
+	top: 160px;
+	left: 160px;
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+	-webkit-transition: -webkit-transform 0.5s;
+	transition: transform 0.5s;
+}
+#cube div {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	border: 1px solid rgb(204,204,204);
+	background-color: rgba(255,255,255,0.8);
+	box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+	text-align: center;
+	line-height: 160px;
+	font-size: 120px;
+}
+.faceLeft {
+	-webkit-transform: rotateY(-90deg) translateZ(80px);
+	transform: rotateY(-90deg) translateZ(80px);
+}
+.faceFront {
+	-webkit-transform: translateZ(80px);
+	transform: translateZ(80px);
+}
+.faceRight {
+	-webkit-transform: rotateY(90deg) translateZ(80px);
+	transform: rotateY(90deg) translateZ(80px);
+}
+.faceBottom {
+	-webkit-transform: rotateX(-90deg) translateZ(80px);
+	transform: rotateX(-90deg) translateZ(80px);
+}
+.faceBack {
+	-webkit-transform: rotateX(-180deg) translateZ(80px);
+	transform: rotateX(-180deg) translateZ(80px);
+}
+.faceTop {
+	-webkit-transform: rotateX(-270deg) translateZ(80px);
+	transform: rotateX(-270deg) translateZ(80px);
+}
+</style>
+<script type="text/javascript" language="javascript">
+var cube;
+
+var cubeMatrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+var newCubeMatrix = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+var rotateX90 = [1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1];
+var rotateXMinus90 = [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1];
+
+var rotateY90 = [0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1];
+var rotateYMinus90 = [0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 1];
+
+var rotateZ90 = [0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+var rotateZMinus90 = [0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+
+function matrixMultiply(matrix)
+{
+	for (var col = 0; col < 16; col += 4)
+		for (var row = 0; row < 4; ++row)
+			newCubeMatrix[col + row] = matrix[row] * cubeMatrix[col] +
+				matrix[row + 4] * cubeMatrix[col + 1] +
+				matrix[row + 8] * cubeMatrix[col + 2] +
+				matrix[row + 12] * cubeMatrix[col + 3];
+
+	var oldCubeMatrix = cubeMatrix;
+	cubeMatrix = newCubeMatrix;
+	newCubeMatrix = oldCubeMatrix;
+}
+function handleTransitionEnd(event)
+{
+	return false;
+}
+function handleKeyDown(event)
+{
+	if (event.target instanceof HTMLInputElement)
+		return true;
+
+	var key = event.key || event.keyIdentifier;
+	switch (key) {
+		case 'ArrowLeft':
+		case 'Left':
+			matrixMultiply(event.shiftKey ? rotateYMinus90 : rotateZMinus90);
+			break;
+		case 'ArrowRight':
+		case 'Right':
+			matrixMultiply(event.shiftKey ? rotateY90 : rotateZ90);
+			break;
+		case 'ArrowDown':
+		case 'Down':
+			matrixMultiply(rotateXMinus90);
+			break;
+		case 'ArrowUp':
+		case 'Up':
+			matrixMultiply(rotateX90);
+			break;
+		default:
+			return true;
+	}
+
+	var transform = 'matrix3d(' + cubeMatrix.join(', ') + ')';
+	cube.style.transform = transform;
+	cube.style.webkitTransform = transform;
+	return false;
+}
+function init()
+{
+	cube = document.getElementById('cube');
+	cube.addEventListener('transitionend', handleTransitionEnd, false);
+	document.addEventListener('keydown', handleKeyDown, false);
+}
+</script>
+</head>
+<body onload="init()">
+
+<div id="space">
+<div id="cube">
+<div class="faceLeft">1</div>
+<div class="faceFront">2</div>
+<div class="faceRight">3</div>
+<div class="faceBottom">4</div>
+<div class="faceBack">5</div>
+<div class="faceTop">6</div>
+</div>
+</div>
+
+</body>
+</html>

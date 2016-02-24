@@ -1,0 +1,65 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Webkit Bug</title>
+<style type="text/css">
+body {
+	background-color: rgb(222,184,135);
+}
+#space {
+	position: absolute;
+	width: 360;
+	height: 360;
+	border: 1px solid rgb(0,0,0);
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+/*
+	-webkit-perspective: none;
+	perspective: none;
+*/
+	-webkit-perspective: 1000px;
+	perspective: 1000px;
+}
+#box {
+	position: absolute;
+	top: 100px;
+	left: 100px;
+	width: 160px;
+	height: 160px;
+	cursor: move;
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+}
+#box div {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	border: 1px solid rgb(0,0,0);
+	-webkit-backface-visibility: hidden;
+	backface-visibility: hidden;
+}
+#div1 {
+	background-color: rgb(255,0,0);
+	-webkit-transform: rotateY(45deg);
+	transform: rotateY(45deg);
+}
+#div2 {
+	background-color: rgb(0,255,0);
+	-webkit-transform: rotateY(-45deg);
+	transform: rotateY(-45deg);
+}
+#div1:hover { background-color: rgb(255,255,0); }
+#div2:hover { background-color: rgb(0,0,255); }
+</style>
+</head>
+<body>
+
+<div id="space">
+<div id="box">
+<div id="div1"></div>
+<div id="div2"></div>
+</div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,295 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>CSS Cube</title>
+<style type="text/css">
+a {
+	text-decoration: none;
+}
+body {
+	background-color: rgb(222,184,135);
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+}
+#space {
+	-webkit-perspective: 1200px;
+	perspective: 1200px;
+}
+#cube {
+	position: absolute;
+	width: 160px;
+	height: 160px;
+	top: 160px;
+	left: 160px;
+	-webkit-transform-style: preserve-3d;
+	transform-style: preserve-3d;
+}
+#cube div {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	border: 1px solid rgb(204,204,204);
+	background-color: rgba(255,255,255,0.8);
+	box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+	text-align: center;
+	line-height: 160px;
+	font-size: 120px;
+}
+.faceLeft {
+	-webkit-transform: rotateY(-90deg) translateZ(80px);
+	transform: rotateY(-90deg) translateZ(80px);
+}
+.faceFront {
+	-webkit-transform: translateZ(80px);
+	transform: translateZ(80px);
+}
+.faceRight {
+	-webkit-transform: rotateY(90deg) translateZ(80px);
+	transform: rotateY(90deg) translateZ(80px);
+}
+.faceBottom {
+	-webkit-transform: rotateX(-90deg) translateZ(80px);
+	transform: rotateX(-90deg) translateZ(80px);
+}
+.faceBack {
+	-webkit-transform: rotateX(-180deg) translateZ(80px);
+	transform: rotateX(-180deg) translateZ(80px);
+}
+.faceTop {
+	-webkit-transform: rotateX(-270deg) translateZ(80px);
+	transform: rotateX(-270deg) translateZ(80px);
+}
+</style>
+<script type="text/javascript" language="javascript">
+var cube;
+var angles = [];
+var savedAngle = 0;
+var xAxis = [1, 0, 0];
+var yAxis = [0, 1, 0];
+var zAxis = [0, 0, 1];
+var sameAxisRotation = false;
+var transitionEnabled = false;
+
+var cubeMatrix = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+var newCubeMatrix = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+var rotateX90 = [1, 0, 0, 0, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1];
+var rotateXMinus90 = [1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1];
+
+var rotateY90 = [0, 0, -1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1];
+var rotateYMinus90 = [0, 0, 1, 0, 0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 0, 1];
+
+var rotateZ90 = [0, 1, 0, 0, -1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+var rotateZMinus90 = [0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+
+function matrixMultiply(matrix)
+{
+	for (var col = 0; col < 16; col += 4)
+		for (var row = 0; row < 4; ++row)
+			newCubeMatrix[col + row] = matrix[row] * cubeMatrix[col] +
+				matrix[row + 4] * cubeMatrix[col + 1] +
+				matrix[row + 8] * cubeMatrix[col + 2] +
+				matrix[row + 12] * cubeMatrix[col + 3];
+
+	var oldCubeMatrix = cubeMatrix;
+	cubeMatrix = newCubeMatrix;
+	newCubeMatrix = oldCubeMatrix;
+}
+function normalizeAngles()
+{
+	var newXAxis = cubeMatrix[0] + (cubeMatrix[4] << 1) + (cubeMatrix[8] << 2);
+	var newZAxis = cubeMatrix[2] + (cubeMatrix[6] << 1) + (cubeMatrix[10] << 2);
+
+	var face = 0;
+	var rotation = 0;
+
+	switch (newZAxis) {
+		case -1: // -X (left)
+			face = 1;
+			switch (newXAxis) {
+				case 4: rotation = 0; angles = [['Y', 90]]; break;
+				case -2: rotation = 90; angles = [['Y', 90], ['X', -90]]; break;
+				case -4: rotation = 180; angles = [['Y', 90], ['X', 180]]; break;
+				case 2: rotation = 270; angles = [['Y', 90], ['X', 90]]; break;
+			}
+			break;
+		case -2: // -Y (top)
+			face = 6;
+			switch (newXAxis) {
+				case 1: rotation = 0; angles = [['X', -90]]; break;
+				case -4: rotation = 90; angles = [['X', -90], ['Y', -90]]; break;
+				case -1: rotation = 180; angles = [['X', -90], ['Y', 180]]; break;
+				case 4: rotation = 270; angles = [['X', -90], ['Y', 90]]; break;
+			}
+			break;
+		case -4: // -Z
+			face = 5;
+			switch (newXAxis) {
+				case 1: rotation = 0; angles = [['X', 180]]; break;
+				case 2: rotation = 90; angles = [['X', 180], ['Z', -90]]; break;
+				case -1: rotation = 180; angles = [['X', 180], ['Z', 180]]; break;
+				case -2: rotation = 270; angles = [['X', 180], ['Z', 90]]; break;
+			}
+			break;
+		case 1: // X (right)
+			face = 3;
+			switch (newXAxis) {
+				case -4: rotation = 0; angles = [['Y', -90]]; break;
+				case -2: rotation = 90; angles = [['Y', -90], ['X', 90]]; break;
+				case 4: rotation = 180; angles = [['Y', -90], ['X', 180]]; break;
+				case 2: rotation = 270; angles = [['Y', -90], ['X', -90]]; break;
+			}
+			break;
+		case 2: // Y (bottom)
+			face = 4;
+			switch (newXAxis) {
+				case 1: rotation = 0; angles = [['X', 90]]; break;
+				case 4: rotation = 90; angles = [['X', 90], ['Y', 90]]; break;
+				case -1: rotation = 180; angles = [['X', 90], ['Y', 180]]; break;
+				case -4: rotation = 270; angles = [['X', 90], ['Y', -90]]; break;
+			}
+			break;
+		case 4: // Z (front)
+			face = 2;
+			switch (newXAxis) {
+				case 1: rotation = 0; angles = []; break;
+				case -2: rotation = 90; angles = [['Z', 90]]; break;
+				case -1: rotation = 180; angles = [['Z', 180]]; break;
+				case 2: rotation = 270; angles = [['Z', -90]]; break;
+			}
+			break;
+	}
+}
+function applyTransform(enableTransition)
+{
+	var transform = [];
+	for (var i = 0; i < angles.length; ++i)
+		transform.push('rotate' + angles[i][0] + '(' + angles[i][1] + 'deg)');
+
+	transform = transform.length > 0 ? transform.join(' ') : 'none';
+
+	if (enableTransition) {
+		if (!transitionEnabled) {
+			cube.style.transition = 'transform 0.4s';
+			cube.style.webkitTransition = '-webkit-transform 0.4s';
+			transitionEnabled = true;
+		}
+	} else if (transitionEnabled) {
+		cube.style.removeProperty('transition');
+		cube.style.removeProperty('-webkit-transition');
+		transitionEnabled = false;
+	}
+
+	cube.style.transform = transform;
+	cube.style.webkitTransform = transform;
+}
+function handleTransitionEnd(event)
+{
+	if (sameAxisRotation)
+		sameAxisRotation = false;
+	return false;
+}
+function rotateSavedAngle()
+{
+	angles[angles.length - 1][1] += savedAngle;
+	applyTransform(true);
+	savedAngle = 0;
+	sameAxisRotation = true;
+}
+function handleKeyDown(event)
+{
+	var axis, angle, matrix;
+
+	if (event.target instanceof HTMLInputElement)
+		return true;
+
+	var key = event.key || event.keyIdentifier;
+	switch (key) {
+		case 'ArrowLeft':
+		case 'Left':
+			if (event.shiftKey)
+				axis = yAxis, angle = -90, matrix = rotateYMinus90;
+			else
+				axis = zAxis, angle = -90, matrix = rotateZMinus90;
+			break;
+		case 'ArrowRight':
+		case 'Right':
+			if (event.shiftKey)
+				axis = yAxis, angle = 90, matrix = rotateY90;
+			else
+				axis = zAxis, angle = 90, matrix = rotateZ90;
+			break;
+		case 'ArrowDown':
+		case 'Down':
+			axis = xAxis, angle = -90, matrix = rotateXMinus90;
+			break;
+		case 'ArrowUp':
+		case 'Up':
+			axis = xAxis, angle = 90, matrix = rotateX90;
+			break;
+		default:
+			return true;
+	}
+
+	if (savedAngle)
+		return false;
+
+	// Multiply axis by the transpose of cubeMatrix
+	var x = axis[0] * cubeMatrix[0] + axis[1] * cubeMatrix[1] + axis[2] * cubeMatrix[2];
+	var y = axis[0] * cubeMatrix[4] + axis[1] * cubeMatrix[5] + axis[2] * cubeMatrix[6];
+	var z = axis[0] * cubeMatrix[8] + axis[1] * cubeMatrix[9] + axis[2] * cubeMatrix[10];
+
+	if (x != 0)
+		axis = 'X', angle *= x;
+	else if (y != 0)
+		axis = 'Y', angle *= y;
+	else
+		axis = 'Z', angle *= z;
+
+	if (angles.length > 0 && angles[angles.length - 1][0] === axis) {
+		angles[angles.length - 1][1] += angle;
+		sameAxisRotation = true;
+		matrixMultiply(matrix);
+		applyTransform(true);
+		return false;
+	}
+
+	if (sameAxisRotation)
+		return false;
+
+	normalizeAngles();
+	if (angles.length === 0 || angles[angles.length - 1][0] != axis)
+		angles.push([axis, 0]);
+
+	savedAngle = angle;
+	applyTransform(false);
+	matrixMultiply(matrix);
+	setTimeout(rotateSavedAngle, 100);
+	return false;
+}
+function init()
+{
+	cube = document.getElementById('cube');
+	cube.addEventListener('transitionend', handleTransitionEnd, false);
+	document.addEventListener('keydown', handleKeyDown, false);
+}
+</script>
+</head>
+<body onload="init()">
+
+<div id="space">
+<div id="cube">
+<div class="faceLeft">1</div>
+<div class="faceFront">2</div>
+<div class="faceRight">3</div>
+<div class="faceBottom">4</div>
+<div class="faceBack">5</div>
+<div class="faceTop">6</div>
+</div>
+</div>
+
+</body>
+</html>

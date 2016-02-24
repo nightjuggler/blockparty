@@ -1,0 +1,75 @@
+<html>
+<head>
+<title>Block Party</title>
+<style type="text/css">
+body {background-color: rgb(255,255,255);}
+p,li,td,th {font-family: verdana; font-size: 10pt; vertical-align: top;}
+a {text-decoration: none;}
+svg {border: 1px solid rgb(0,0,0);}
+</style>
+</head>
+<body>
+
+<p><svg width="400" height="400" viewBox="0 0 560 560">
+
+<defs>
+  <path id="heartShape" stroke-width="10"
+    d="M 70,46 C 60,10 10,10 10,46 10,72 70,130 70,130 70,130 130,72 130,46 130,10 80,10 70,46 Z" />
+  <rect id="squareShape" stroke-width="10" x="10" y="10" width="120" height="120" />
+  <circle id="circleShape" stroke-width="10" cx="70" cy="70" r="60" />
+  <path id="triangleShape" stroke-width="10" d="M 70,20 L 130,130 10,130 Z" />
+  <path id="gridFill" stroke-width="4"
+    d="M 40,10 L 40,130 M 70,10 L 70,130 M 100,10 L 100,130 M 10,40 L 130,40 M 10,70 L 130,70 M 10,100 L 130,100" />
+  <rect id="halfFill" x="70" y="0" width="70" height="140" stroke-width="2" />
+  <clipPath id="heartClip"><use xlink:href="#heartShape" /></clipPath>
+  <clipPath id="squareClip"><use xlink:href="#squareShape" /></clipPath>
+  <clipPath id="circleClip"><use xlink:href="#circleShape" /></clipPath>
+  <clipPath id="triangleClip"><use xlink:href="#triangleShape" /></clipPath>
+</defs>
+
+<use xlink:href="#halfFill" stroke="blue" fill="blue" clip-path="url(#heartClip)" />
+<use xlink:href="#heartShape" stroke="blue" fill="none" />
+<g transform="translate(140 0)">
+<use xlink:href="#gridFill" stroke="blue" fill="none" clip-path="url(#heartClip)" />
+<use xlink:href="#heartShape" stroke="blue" fill="none" />
+</g>
+<use x="0" y="140" xlink:href="#heartShape" stroke="blue" fill="none" />
+<use x="140" y="140" xlink:href="#heartShape" stroke="blue" fill="blue" />
+
+<g transform="translate(280 0)">
+<use xlink:href="#halfFill" stroke="orange" fill="orange" clip-path="url(#circleClip)" />
+<use xlink:href="#circleShape" stroke="orange" fill="none" />
+</g>
+<g transform="translate(420 0)">
+<use xlink:href="#gridFill" stroke="orange" fill="none" clip-path="url(#circleClip)" />
+<use xlink:href="#circleShape" stroke="orange" fill="none" />
+</g>
+<use x="280" y="140" xlink:href="#circleShape" stroke="orange" fill="none" />
+<use x="420" y="140" xlink:href="#circleShape" stroke="orange" fill="orange" />
+
+<g transform="translate(0 280)">
+<use xlink:href="#halfFill" stroke="red" fill="red" clip-path="url(#squareClip)" />
+<use xlink:href="#squareShape" stroke="red" fill="none" />
+</g>
+<g transform="translate(140 280)">
+<use xlink:href="#gridFill" stroke="red" fill="none" clip-path="url(#squareClip)" />
+<use xlink:href="#squareShape" stroke="red" fill="none" />
+</g>
+<use x="0" y="420" xlink:href="#squareShape" stroke="red" fill="none" />
+<use x="140" y="420" xlink:href="#squareShape" stroke="red" fill="red" />
+
+<g transform="translate(280 280)">
+<use xlink:href="#halfFill" stroke="black" fill="black" clip-path="url(#triangleClip)" />
+<use xlink:href="#triangleShape" stroke="black" fill="none" />
+</g>
+<g transform="translate(420 280)">
+<use xlink:href="#gridFill" stroke="black" fill="none" clip-path="url(#triangleClip)" />
+<use xlink:href="#triangleShape" stroke="black" fill="none" />
+</g>
+<use x="280" y="420" xlink:href="#triangleShape" stroke="black" fill="none" />
+<use x="420" y="420" xlink:href="#triangleShape" stroke="black" fill="black" />
+
+</svg></p>
+
+</body>
+</html>

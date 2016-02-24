@@ -1,0 +1,336 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Block Party 3D Implementation Notes</title>
+<style type="text/css">
+a {
+	text-decoration: none;
+	color: rgb(0,0,255);
+}
+body {
+	font-family: verdana;
+	font-size: 10pt;
+}
+ul {
+	margin: 0 0 0 0;
+}
+ol {
+	margin: 0 0 0 0;
+	counter-reset: issueCounter;
+	list-style-type: none;
+}
+ol > li::before {
+	counter-increment: issueCounter;
+	content: "[" counters(issueCounter,".") "] ";
+	color: rgb(255,0,0);
+}
+ol > li div {
+	width: 90%;
+	display: inline-block;
+	vertical-align: top;
+}
+td {
+	font-family: verdana;
+	font-size: 10pt;
+}
+.rotationMatrix {
+	border-collapse: collapse;
+}
+.rotationMatrix td {
+	text-align: center;
+	padding: 4px 4px 4px 4px;
+}
+.rotationMatrix td:first-child {
+	border-left: 1px solid rgb(0,0,0);
+}
+.rotationMatrix td:last-child {
+	border-right: 1px solid rgb(0,0,0);
+}
+</style>
+</head>
+<body>
+
+<b>Block Party 3D Implementation Notes</b>
+<br>Last Updated: January 19, 2015
+<br>
+<br>&mdash; Operating System
+<ul>
+<li>Mac OS X 10.9.5 (Mavericks)
+</ul>
+<br>&mdash; Browser Versions
+<ul>
+<li>Chrome 39.0.2171.95
+<li>Firefox 34.0
+<li>Safari 7.1.2
+</ul>
+
+<br>&mdash; Revision History
+<ul>
+<li>1.7 &mdash; January 19, 2015
+<li>1.6 &mdash; January 12, 2015
+<li>1.5 &mdash; January 2, 2015
+<li>1.4 &mdash; December 30, 2014
+<li>1.3 &mdash; December 26, 2014
+<li>1.2 &mdash; December 22, 2014
+<li>1.1 &mdash; December 21, 2014
+<li>1.0 &mdash; December 19, 2014
+</ul>
+
+<br>&mdash; To-Do
+<ul>
+<li>A button or key to gather all blocks in two rows (like the initial
+position) when they've moved too far off screen.
+<li>A pulsating button effect for those buttons that must be clicked
+before the blocks can be moved and rotated again (the &quot;Close&quot;
+button in the &quot;Game Over&quot; box and the &quot;Keep Playing&quot;
+button in the &quot;Party Reason&quot; box) &mdash; perhaps by animating the
+<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/text-shadow">text-shadow</a> and/or
+<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/box-shadow">box-shadow</a>
+properties.
+</ul>
+
+<br>&mdash; CSS-only Cube Folding Animations
+<ul>
+<li><a href="CubeFoldingAnimation1.html">Stationary cube with numbered sides</a>
+<li><a href="CubeFoldingAnimation2.html">Rotating cube with a Block Party icon on each side</a>
+</ul>
+
+<br>&mdash; Browser Issues
+<ol>
+
+<li><div>Firefox and Chrome don't always do shortest path transitions
+when interpolating between two transformation matrices. In order to rotate
+an element in the desired direction, use rotate{X,Y,Z}() instead of
+matrix3d() and use identity transforms like zero-degree rotations or
+zero-pixel translations to ensure that the beginning and end transform
+states consist of the same sequence of transform functions.
+<br><br>
+<ol>
+<li><div>See <a href="csscube2.html">csscube2.html</a>
+<ul>
+<li>This uses matrix3d() to rotate a cube 90 degrees at a time about
+either the X, Y, or Z axis.
+<li>The arrow key controls are the same as in Block Party 3D.
+<ul>
+<li>Use the left and right arrow keys to rotate about the Z axis.
+<li>Use the up and down arrow keys to rotate about the X axis.
+<li>Use shift + left and shift + right to rotate about the Y axis.
+</ul>
+<li>Safari exhibits the desired behavior. The cube is always rotated
+in the desired direction about the desired axis.
+<li>Chrome and Firefox don't always exhibit the desired behavior.
+For example, Firefox sometimes rotates the cube 270 degrees in the
+opposite direction instead of 90 degrees in the desired direction.
+Chrome and Firefox also sometimes rotate the cube about multiple
+axes simultaneously instead of just the desired axis.
+</ul></div>
+<li><div>See <a href="csscube7.html">csscube7.html</a>
+<ul>
+<li>This uses the rotation method I settled on for Block Party 3D.
+<li>rotate{X,Y,Z}() are used instead of matrix3d()
+<li>Before each transition, I ensure that the transform state I'm
+transitioning from consists of the same sequence of rotate functions
+as the transform state I'm transitioning to.
+</ul></div>
+<li><div>See "Interpolation of Matrices" in the CSS Transforms spec.
+<ul>
+<li><a href="http://dev.w3.org/csswg/css-transforms/#matrix-interpolation">Editor's Draft</a> (25 Nov 2014)
+<li><a href="http://www.w3.org/TR/css-transforms-1/#matrix-interpolation">Working Draft</a> (26 Nov 2013)
+</ul></div>
+</ol></div>
+<br><br>
+
+<li><div>Firefox transitions to an incorrect state in certain cases
+when using transitions and animations with 3d transforms. This may be
+related to [1].
+<br><br>
+<ol>
+<li><div>See <a href="FirefoxBug.html">FirefoxBug.html</a>
+(doesn't include the -webkit properties),
+<a href="FirefoxBug+Webkit.html">FirefoxBug+Webkit.html</a>
+(includes the -webkit properties), or
+<a href="FirefoxBugCube.html">FirefoxBugCube.html</a>
+(includes the -webkit properties)
+<ul>
+<li>The upside-down A should rotate 90 degrees counterclockwise, but
+in Firefox it rotates 90 degrees clockwise and then flips to the
+correct end state.
+<li>A workaround is to add a zero-degree rotation around the same
+axis, i.e. rotateZ(0deg), to the transform state at the beginning of
+the animation (the "from" state).
+</ul></div>
+</ol></div>
+<br><br>
+
+<li><div>Chrome and Safari don't send mouse events (like mousedown and mouseover)
+to the displayed element in certain cases. Thus mouse event listeners registered in
+JavaScript are not called, and
+<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/cursor">cursor</a> and
+<a href="https://developer.mozilla.org/en-US/docs/Web/CSS/:hover">hover</a> styles
+are not triggered.
+<br><br>
+<ol>
+
+<li><div>See <a href="WebkitBug.html">WebkitBug.html</a>
+<ul>
+<li>A div with the number 4 in it is rotated -90 degrees about the X axis.
+<li>The parent div is rotated +90 degrees about the X axis,
+thus bringing the number 4 div back into view.
+<li>The correct behavior would be for the number 4 to turn red and the
+mouse cursor to change to the one associated with the "move" value
+when the mouse pointer is anywhere over either div.
+<li>However, mouse events are not sent to either div (and thus the
+cursor and color changes are not triggered) unless the mouse pointer
+is precisely positioned over the X axis.
+</ul>
+<br>Mouse events are sent properly in Firefox.
+<br><br>Any of the following can be used as workarounds in Chrome and Safari:
+<ol>
+<li>Set the (-webkit-)perspective property to a value other than "none".
+<li>Rotate the parent div by a fraction of a degree more or less than
+90 degrees, e.g. 90.01 or 89.99 degrees.
+<li>Use matrix3d() to rotate the parent div 90 degrees.
+</ol>
+<br>The workaround used in Block Party 3D is to set -webkit-perspective to
+100000px when the perspective checkbox is unchecked.</div>
+
+</ol></div>
+<br><br>
+
+<li><div>See <a href="IntersectBug.html">IntersectBug.html</a>
+<ul>
+<li>This is a modified version of the example given in comment #26 for
+<a href="https://code.google.com/p/chromium/issues/detail?id=126479">Chromium
+Issue 126479</a>.
+<li>Safari renders these intersecting divs correctly.
+<li>Chrome and Firefox render the entire red div above the green div.
+However, mouse events are still sent to the green div in the area where
+the red div should be behind the green div. So mouse events are sent
+correctly, but the right side of the red div should not be displayed.
+</ul></div>
+<br><br>
+
+<li><div>Safari stacking order bug: Elements like the
+&quot;solverReasonBox&quot;, &quot;partyReasonBox&quot;, and &quot;gameBox&quot; divs
+should be stacked on top of the &quot;space&quot; div
+(and thus they should always appear on top of all of the 3d-transformed blocks
+which are descendants of the &quot;space&quot; div)
+since they're positioned (absolute or fixed) like the &quot;space&quot; div,
+and they appear after it in the HTML
+
+(see &quot;<a href="https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Understanding_z_index/Stacking_without_z-index">Stacking without z-index</a>&quot;).
+
+However, Safari will render the parts of 3d-transformed elements that
+have Z coordinates greater than 0 above any such divs that should be
+higher in the stacking order. Explicitly setting the z-index of all
+involved elements (in CSS or JavaScript) doesn't change this behavior.
+Mouse events, however, are sent correctly to the topmost element in
+the stacking order. Firefox and Chrome render the stacking order
+correctly. The workaround used in Block Party 3D is to push the blocks
+below the z=0 plane when they're not being dragged.
+</div>
+<br><br>
+
+<li><div>Safari transition bug: Changing the duration of the
+&quot;left&quot; transition for the &quot;partyReason&quot; class from
+0.4s to 0.5s causes the divs of that class to not transition left to
+exactly 0px. The transition seems to stop at 1px or 2px. Firefox and
+Chrome handle the transition correctly regardless of the duration.</div>
+
+</ol>
+
+<br>&mdash; Rotation Matrices
+[<a href="https://en.wikipedia.org/wiki/Rotation_matrix#Basic_rotations">W</a>]
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Matrix_multiplication#Examples_of_matrix_products">Examples
+of matrix multiplication</a>
+
+<li>Values of sine and cosine for multiples of 90&deg;
+<ul>
+<li>sin(0deg) = 0
+<li>sin(90deg) = 1
+<li>sin(180deg) = 0
+<li>sin(270deg) = -1
+<li>cos(0deg) = 1
+<li>cos(90deg) = 0
+<li>cos(180deg) = -1
+<li>cos(270deg) = 0
+</ul>
+<br>
+
+<li>To rotate 90 degrees clockwise about the Z axis (the axis coming
+out of the screen toward the user), the following rotation matrix is
+used.
+<br><br>
+<table class="rotationMatrix">
+<tr>
+<td>cos(90&deg;)</td>
+<td>-sin(90&deg;)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>sin(90&deg;)</td>
+<td>cos(90&deg;)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+</table>
+<br>
+
+<li>To rotate 90 degrees counterclockwise about the Z axis,
+the <a href="https://en.wikipedia.org/wiki/Transpose">transpose</a> of
+the above matrix is used. The same matrix would result from using
+-90&deg; or 270&deg; instead of 90&deg; in the above matrix.
+<br><br>
+<table class="rotationMatrix">
+<tr>
+<td>cos(90&deg;)</td>
+<td>sin(90&deg;)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>-sin(90&deg;)</td>
+<td>cos(90&deg;)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+</table>
+</ul>
+
+<br>&mdash; Block Party Icons
+<ul>
+<li><a href="SymbolsUsingMask.html">Using SVG masks</a>
+<li><a href="SymbolsUsingClipPath.html">Using SVG clip paths</a>
+</ul>
+
+<br>&mdash; SVG Hearts
+
+<table border="1" cellpadding="0" cellspacing="0">
+<tr>
+<td><svg width="160" height="160" viewBox="0 0 400 400">
+<g fill="none" stroke="black" stroke-width="25">
+<path d="M 200,110 C 300,-90 540,210 200,360 C -140,210 100,-90 200,110 Z" />
+</g></svg></td>
+<td><svg width="160" height="160" viewBox="-1 -1 12 12">
+<g fill="none" stroke="black" stroke-width="1">
+<path d="M 5,3 C 5,0 0,0 0,3 0,6 5,8 5,9 5,8 10,6 10,3 10,0 5,0 5,3 Z" />
+</g></svg></td>
+<td><svg width="160" height="160" viewBox="-1 -1 12 12">
+<g fill="none" stroke="black" stroke-width="1">
+<path d="M 5,3 C 4,0 0,0 0,3 0,6 5,10 5,10 5,10 10,6 10,3 10,0 6,0 5,3 Z" />
+</g></svg></td>
+</tr>
+</table>
+
+<br>
+
+</body>
+</html>
