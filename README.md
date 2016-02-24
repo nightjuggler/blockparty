@@ -4,9 +4,9 @@ This is an implementation of [Three Pixel Heart's Block Party](http://3pxh.com/)
 
 See [https://nightjuggler.com/blockparty/](https://nightjuggler.com/blockparty/)
 
-Most of this project was originally written between December 2014 and January 2015.
+This project was originally written between December 2014 and January 2015.
 
-To play this game, the only file you need from this repository is `index.html`. It contains all the JavaScript, SVG, CSS, and HTML for Block Party 3D. An older, much more primitive 2D version of the game is in `BlockParty2D.html`. My implementation notes for Block Party 3D are in the `notes` folder.
+To play this game, the only file you need from this repository is [`index.html`](index.html). It contains all the JavaScript, SVG, CSS, and HTML for Block Party 3D. An older, much more primitive 2D version of the game is in [`BlockParty2D.html`](BlockParty2D.html). My implementation notes for Block Party 3D are in the [`notes`](notes) folder.
 
 ## How To Play
 
