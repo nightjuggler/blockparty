@@ -1,6 +1,7 @@
+<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta charset="utf-8">
 <title>Block Party 3D Implementation Notes</title>
 <style type="text/css">
 a {
@@ -8,8 +9,12 @@ a {
 	color: rgb(0,0,255);
 }
 body {
+	background-color: white;
 	font-family: verdana;
 	font-size: 10pt;
+}
+.invis {
+	color: white;
 }
 ul {
 	margin: 0 0 0 0;
@@ -29,10 +34,6 @@ ol > li div {
 	display: inline-block;
 	vertical-align: top;
 }
-td {
-	font-family: verdana;
-	font-size: 10pt;
-}
 .rotationMatrix {
 	border-collapse: collapse;
 }
@@ -46,27 +47,61 @@ td {
 .rotationMatrix td:last-child {
 	border-right: 1px solid rgb(0,0,0);
 }
+.revTable {
+	border-spacing: 0;
+}
+.revTable td {
+	padding: 0;
+}
+.revTable td:nth-child(2) {
+	border-top: 1px solid black;
+	border-left: 1px solid black;
+	border-bottom: 1px solid black;
+}
 </style>
 </head>
 <body>
 
 <b>Block Party 3D Implementation Notes</b>
-<br>Last Updated: January 19, 2015
+<br>Last Updated: February 24, 2016
 <br>
-<br>&mdash; Operating System
+
+<br>&mdash; Revision History
+<ul>
+<li>1.8 &mdash; <a href="https://github.com/nightjuggler/blockparty/blob/4be5fe7d96e011752f884c16b97d16b3cfdd8689/index.html">February 24, 2016</a>
+<table class="revTable">
+<tr>
+<td class="invis">1.8 &mdash;&nbsp;</td>
+<td>&nbsp;</td>
+<td>Operating System:
+<ul>
+<li>Mac OS X 10.11.3 (El Capitan)
+</ul>
+Browser Versions:
+<ul>
+<li>Chrome 48.0.2564.116
+<li>Firefox 44.0.2
+<li>Safari 9.0.3
+</ul></td>
+</tr>
+</table>
+<li>1.7 &mdash; January 19, 2015
+<table class="revTable">
+<tr>
+<td class="invis">1.7 &mdash;&nbsp;</td>
+<td>&nbsp;</td>
+<td>Operating System:
 <ul>
 <li>Mac OS X 10.9.5 (Mavericks)
 </ul>
-<br>&mdash; Browser Versions
+Browser Versions:
 <ul>
 <li>Chrome 39.0.2171.95
 <li>Firefox 34.0
 <li>Safari 7.1.2
-</ul>
-
-<br>&mdash; Revision History
-<ul>
-<li>1.7 &mdash; January 19, 2015
+</ul></td>
+</tr>
+</table>
 <li>1.6 &mdash; January 12, 2015
 <li>1.5 &mdash; January 2, 2015
 <li>1.4 &mdash; December 30, 2014
