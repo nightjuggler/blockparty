@@ -75,12 +75,15 @@ table {
 	color: white;
 	padding: 0;
 }
+.note {
+	color: rgb(0,128,0);
+}
 </style>
 </head>
 <body>
 
 <b>Block Party 3D Implementation Notes</b>
-<br>Last Updated: February 24, 2016
+<br>Last Updated: February 25, 2016
 <br>
 
 <br>&mdash; Revision History
@@ -210,7 +213,9 @@ correct end state.
 <li>A workaround is to add a zero-degree rotation around the same
 axis, i.e. rotateZ(0deg), to the transform state at the beginning of
 the animation (the "from" state).
-</ul></div>
+</ul>
+<br><span class="note">Note (2/25/2016): The -webkit properties are no longer necessary as of <a href="https://developer.apple.com/library/mac/releasenotes/General/WhatsNewInSafari/Articles/Safari_9.html#//apple_ref/doc/uid/TP40014305-CH9-SW35">Safari 9.0</a> (9/30/2015).</span></div>
+
 </ol></div>
 <br><br>
 
@@ -220,6 +225,9 @@ JavaScript are not called, and
 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/cursor">cursor</a> and
 <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/:hover">hover</a> styles
 are not triggered.
+<br><br><span class="note">Note (2/25/2016): This is no longer an issue in Safari.
+This must have been fixed sometime in the past year between Safari versions 7.1.2
+and 9.0.3. However, it is still an issue in Chrome.</span>
 <br><br>
 <ol>
 
@@ -259,6 +267,7 @@ Issue 126479</a>.
 However, mouse events are still sent to the green div in the area where
 the red div should be behind the green div. So mouse events are sent
 correctly, but the right side of the red div should not be displayed.
+<br><br><span class="note">Note (2/25/2016): Chrome now renders these divs correctly. This must have been fixed sometime in the past year between Chrome versions 39.0.2171.95 and 48.0.2564.116.</span>
 </ul></div>
 <br><br>
 
