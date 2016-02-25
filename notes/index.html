@@ -13,9 +13,6 @@ body {
 	font-family: verdana;
 	font-size: 10pt;
 }
-.invis {
-	color: white;
-}
 ul {
 	margin: 0 0 0 0;
 }
@@ -34,29 +31,49 @@ ol > li div {
 	display: inline-block;
 	vertical-align: top;
 }
-.rotationMatrix {
-	border-collapse: collapse;
+table {
+	border-spacing: 0;
 }
 .rotationMatrix td {
 	text-align: center;
-	padding: 4px 4px 4px 4px;
+	padding: 4px;
 }
-.rotationMatrix td:first-child {
-	border-left: 1px solid rgb(0,0,0);
+.rotationMatrix tr:first-child > td:first-child {
+	border-top: 1px solid black;
+	border-left: 1px solid black;
+	border-bottom: 1px solid black;
+	padding: 0;
 }
-.rotationMatrix td:last-child {
-	border-right: 1px solid rgb(0,0,0);
-}
-.revTable {
-	border-spacing: 0;
+.rotationMatrix tr:first-child > td:last-child {
+	border-top: 1px solid black;
+	border-right: 1px solid black;
+	border-bottom: 1px solid black;
+	padding: 0;
 }
 .revTable td {
 	padding: 0;
+}
+.revTable td:first-child {
+	color: white;
 }
 .revTable td:nth-child(2) {
 	border-top: 1px solid black;
 	border-left: 1px solid black;
 	border-bottom: 1px solid black;
+}
+.heartTable {
+	border-collapse: collapse;
+	margin-top: 2px;
+}
+.heartTable td {
+	border: 1px solid black;
+	text-align: center;
+	padding: 4px;
+}
+.heartTable td:first-child {
+	border-style: none;
+	color: white;
+	padding: 0;
 }
 </style>
 </head>
@@ -71,7 +88,7 @@ ol > li div {
 <li>1.8 &mdash; <a href="https://github.com/nightjuggler/blockparty/blob/4be5fe7d96e011752f884c16b97d16b3cfdd8689/index.html">February 24, 2016</a>
 <table class="revTable">
 <tr>
-<td class="invis">1.8 &mdash;&nbsp;</td>
+<td>1.8 &mdash;&nbsp;</td>
 <td>&nbsp;</td>
 <td>Operating System:
 <ul>
@@ -88,7 +105,7 @@ Browser Versions:
 <li>1.7 &mdash; January 19, 2015
 <table class="revTable">
 <tr>
-<td class="invis">1.7 &mdash;&nbsp;</td>
+<td>1.7 &mdash;&nbsp;</td>
 <td>&nbsp;</td>
 <td>Operating System:
 <ul>
@@ -299,9 +316,11 @@ used.
 <br><br>
 <table class="rotationMatrix">
 <tr>
+<td rowspan="3">&nbsp;</td>
 <td>cos(90&deg;)</td>
 <td>-sin(90&deg;)</td>
 <td>0</td>
+<td rowspan="3">&nbsp;</td>
 </tr>
 <tr>
 <td>sin(90&deg;)</td>
@@ -323,9 +342,11 @@ the above matrix is used. The same matrix would result from using
 <br><br>
 <table class="rotationMatrix">
 <tr>
+<td rowspan="3">&nbsp;</td>
 <td>cos(90&deg;)</td>
 <td>sin(90&deg;)</td>
 <td>0</td>
+<td rowspan="3">&nbsp;</td>
 </tr>
 <tr>
 <td>-sin(90&deg;)</td>
@@ -348,8 +369,9 @@ the above matrix is used. The same matrix would result from using
 
 <br>&mdash; SVG Hearts
 
-<table border="1" cellpadding="0" cellspacing="0">
+<table class="heartTable">
 <tr>
+<td>&mdash;&nbsp;</td>
 <td><svg width="160" height="160" viewBox="0 0 400 400">
 <g fill="none" stroke="black" stroke-width="25">
 <path d="M 200,110 C 300,-90 540,210 200,360 C -140,210 100,-90 200,110 Z" />
