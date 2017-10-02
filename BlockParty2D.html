@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>Block Party 2D</title>
-<style type="text/css">
+<style>
 a {
 	text-decoration: none;
 }
@@ -36,16 +36,20 @@ svg {
 <script>
 // Originally written December 4, 2014
 // Last updated February 24, 2016
+// Cleaned up for JSHint October 2, 2017
+
+/* globals alert, document, HTMLInputElement */
+"use strict";
 
 // Global Constants
 var svgNS = 'http://www.w3.org/2000/svg';
 var xlinkNS = 'http://www.w3.org/1999/xlink';
-
+/*
 var topLeft = 0;
 var topRight = 1;
 var bottomRight = 2;
 var bottomLeft = 3;
-
+*/
 var circle = '#circle';
 var square = '#square';
 var heart = '#heart';
@@ -181,9 +185,9 @@ function handleKeyDown(event)
 	var rotateAngle = parseInt(dragNode.style.transform.substr(7), 10);
 	var key = event.key || event.keyIdentifier;
 
-	if (key == "ArrowLeft" || key == "Left") {
+	if (key === "ArrowLeft" || key === "Left") {
 		if ((rotateAngle -= 10) < 0) rotateAngle += 360;
-	} else if (key == "ArrowRight" || key == "Right") {
+	} else if (key === "ArrowRight" || key === "Right") {
 		if ((rotateAngle += 10) > 359) rotateAngle -= 360;
 	} else return true;
 
@@ -198,11 +202,11 @@ function draw(position, shape, color, fill)
 
 	var translateX = xOffset[position];
 	var translateY = yOffset[position];
-	if (translateX != 0 || translateY != 0)
+	if (translateX !== 0 || translateY !== 0)
 		transformList.push('translate(' + translateX + ' ' + translateY + ')');
 
 	var rotateAngle = position * 90;
-	if (rotateAngle != 0)
+	if (rotateAngle !== 0)
 		transformList.push('rotate(' + rotateAngle + ' 70 70)');
 
 	var gNode = document.createElementNS(svgNS, 'g');
@@ -305,12 +309,12 @@ function shuffle()
 		svgNode.style.webkitTransform = transform;
 	}
 }
-function changeSize(event)
+function changeSize()
 {
 	var sizeField = document.getElementById('sizeField');
 	var size = parseInt(sizeField.value, 10);
 
-	if (isNaN(size) || size != sizeField.value || size < 40 || size > 400) {
+	if (isNaN(size) || size.toString() !== sizeField.value || size < 40 || size > 400) {
 		alert('The size is not valid. Please enter an integer between 40 and 400.');
 		return false;
 	}
@@ -325,7 +329,7 @@ function changeSize(event)
 	sizeField.blur();
 	return false;
 }
-function clickShuffleButton(event)
+function clickShuffleButton()
 {
 	shuffle();
 	return false;
@@ -367,11 +371,11 @@ function init()
 	document.getElementById('aboutButton').onclick = function() {
 		document.getElementById('aboutBox').style.display = 'block';
 		return false;
-	}
+	};
 	document.getElementById('closeAboutButton').onclick = function() {
 		document.getElementById('aboutBox').style.display = 'none';
 		return false;
-	}
+	};
 }
 </script>
 </head>

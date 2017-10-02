@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <title>Block Party 3D</title>
-<style type="text/css">
+<style>
 a {
 	color: rgb(0,0,255);
 	text-decoration: none;
@@ -193,6 +193,9 @@ input[type="range"] {
 <script>
 // Code by Pius Fischer
 // Special Thanks to Dancin' Angie for design help and feedback
+
+/* globals alert, document, window */
+"use strict";
 
 // Global Constants
 var svgNS = 'http://www.w3.org/2000/svg';
@@ -427,7 +430,7 @@ Block.prototype.matrixMultiply = function(rotationMatrix)
 
 	this.matrix = newMatrix;
 	this.newMatrix = oldMatrix;
-}
+};
 Block.prototype.getFaceAndRotation = function()
 {
 	var matrix = this.matrix;
@@ -437,12 +440,12 @@ Block.prototype.getFaceAndRotation = function()
 
 	this.face = z2Face[newZAxis];
 	this.rotation = x2Rotation[this.face][newXAxis];
-}
+};
 Block.prototype.setSolveRotation = function(desiredRotation, iconPosition)
 {
 	this.getFaceAndRotation();
 	this.solveRotation = (8 + desiredRotation - this.rotation - iconPosition) % 4;
-}
+};
 Block.prototype.normalizeAngles = function()
 {
 	this.getFaceAndRotation();
@@ -452,7 +455,7 @@ Block.prototype.normalizeAngles = function()
 	this.angles.length = 0;
 	for (var i = 0; i < newAngles.length; ++i)
 		this.angles.push([newAngles[i][0], newAngles[i][1]]);
-}
+};
 Block.prototype.enableGrabTransition = function()
 {
 	this.zCoord = dragZCoord;
@@ -465,7 +468,7 @@ Block.prototype.enableGrabTransition = function()
 		this.node.style.transition = 'transform 0.1s ease';
 	}
 	this.onTransitionEnd = null;
-}
+};
 Block.prototype.enableRotateTransition = function()
 {
 	this.rotating = true;
@@ -473,13 +476,13 @@ Block.prototype.enableRotateTransition = function()
 	this.node.style.webkitTransition = '-webkit-transform 0.4s ease';
 	this.node.style.transition = 'transform 0.4s ease';
 	this.onTransitionEnd = handleEndRotation;
-}
+};
 Block.prototype.disableTransition = function()
 {
 	this.node.style.webkitTransition = 'none';
 	this.node.style.transition = 'none';
 	this.onTransitionEnd = null;
-}
+};
 Block.prototype.applyTransform = function()
 {
 	var transform = ['translateZ(' + this.zCoord + 'px)'];
@@ -491,7 +494,7 @@ Block.prototype.applyTransform = function()
 
 	this.node.style.transform = transform;
 	this.node.style.webkitTransform = transform;
-}
+};
 Block.prototype.rotateMatrix = function(axis, angle)
 {
 	var matrix = this.matrix;
@@ -516,7 +519,7 @@ Block.prototype.rotateMatrix = function(axis, angle)
 	angle = ((angle + 360) % 360) / 90;
 	while (angle-- > 0)
 		this.matrixMultiply(rotationMatrix);
-}
+};
 function setDisabled(elementList)
 {
 	for (var i = 0; i < elementList.length; ++i)
@@ -698,7 +701,7 @@ function rotateBlock(axis, angle, rotationMatrix)
 		block.disableTransition();
 		block.applyTransform();
 		block.matrixMultiply(rotationMatrix);
-		setTimeout(rotateSavedAngle, 100, block);
+		window.setTimeout(rotateSavedAngle, 100, block);
 	}
 
 	if (resetSolver)
@@ -1536,12 +1539,12 @@ function updateGameTime()
 function startGameTimer()
 {
 	gameEndTime = Date.now() + gameDuration * 1000;
-	gameTimer = setInterval(updateGameTime, 1000);
+	gameTimer = window.setInterval(updateGameTime, 1000);
 }
 function stopGame()
 {
 	if (gameTimer === null) return;
-	clearInterval(gameTimer);
+	window.clearInterval(gameTimer);
 	gameTimer = null;
 
 	setGameTime(0);
@@ -1608,7 +1611,7 @@ GatherHelper.prototype.setTopLeft = function(blockNode, blockIndex)
 
 	blockNode.style.top = top + 'px';
 	blockNode.style.left = left + 'px';
-}
+};
 function transformFace(faceNode, faceIndex)
 {
 	var transform = 'translateZ(' + (blockSize / 2) + 'px)';
@@ -1687,7 +1690,7 @@ function changeSize()
 	var sizeField = document.getElementById('sizeField');
 	var size = parseInt(sizeField.value, 10);
 
-	if (isNaN(size) || size != sizeField.value || size < 40 || size > 400) {
+	if (isNaN(size) || size.toString() !== sizeField.value || size < 40 || size > 400) {
 		alert('The size is not valid. Please enter an integer between 40 and 400.');
 		return false;
 	}
@@ -1842,7 +1845,7 @@ function clickShuffle()
 		block.applyTransform();
 	}
 
-	setTimeout(rotate2Normal, 100);
+	window.setTimeout(rotate2Normal, 100);
 	return false;
 }
 function clickAbout()
@@ -1894,7 +1897,7 @@ function changePerspective()
 	var perspectiveField = document.getElementById('perspectiveField');
 	var newPerspective = parseInt(perspectiveField.value, 10);
 
-	if (isNaN(newPerspective) || newPerspective != perspectiveField.value
+	if (isNaN(newPerspective) || newPerspective.toString() !== perspectiveField.value
 		|| newPerspective < minPerspective() || newPerspective > maxPerspective())
 	{
 		alert('The perspective is not valid. Please enter an integer between ' +
