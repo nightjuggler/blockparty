@@ -1706,7 +1706,9 @@ function changeSize()
 	perspectiveField.max = maxPerspective();
 	perspectiveField.value = newPerspective;
 
+	var blockSizePx = blockSize + 'px';
 	var sizeWithBorder = (blockSize + 2) + 'px';
+
 	for (var blockIndex = 0; blockIndex < blockArray.length; ++blockIndex)
 	{
 		var block = blockArray[blockIndex];
@@ -1720,8 +1722,11 @@ function changeSize()
 		for (var faceIndex = 0; faceIndex < 6; ++faceIndex)
 		{
 			var faceNode = blockNode.children[faceIndex];
-			faceNode.setAttribute('width', blockSize);
-			faceNode.setAttribute('height', blockSize);
+			var faceSvg = faceNode.firstChild;
+			faceNode.style.width = blockSizePx;
+			faceNode.style.height = blockSizePx;
+			faceSvg.setAttribute('width', blockSize);
+			faceSvg.setAttribute('height', blockSize);
 			transformFace(faceNode, faceIndex);
 		}
 	}
@@ -1944,15 +1949,21 @@ function init()
 	blockArray = new Array(blockSpec.length);
 
 	var faceNode = document.getElementById('block0face0');
+	var faceSvg = faceNode.firstChild;
 	var blockNode = faceNode.parentNode;
 	spaceNode = blockNode.parentNode;
 
-	setBlockSize(parseInt(faceNode.getAttribute('width'), 10));
-	var viewBox = faceNode.getAttribute('viewBox');
+	setBlockSize(parseInt(faceSvg.getAttribute('width'), 10));
+	var viewBox = faceSvg.getAttribute('viewBox');
 	setPerspective(defaultPerspective());
 
-	var gatherHelper = new GatherHelper();
+	var blockSizePx = blockSize + 'px';
 	var sizeWithBorder = (blockSize + 2) + 'px';
+
+	faceNode.style.width = blockSizePx;
+	faceNode.style.height = blockSizePx;
+
+	var gatherHelper = new GatherHelper();
 	for (var blockIndex = 0; blockIndex < blockArray.length; ++blockIndex)
 	{
 		if (blockIndex > 0) {
@@ -1971,17 +1982,21 @@ function init()
 		for (var faceIndex = 0; faceIndex < 6; ++faceIndex)
 		{
 			if (blockIndex > 0 || faceIndex > 0) {
-				faceNode = document.createElementNS(svgNS, 'svg');
-				faceNode.setAttribute('class', 'blockface');
-				faceNode.setAttribute('width', blockSize);
-				faceNode.setAttribute('height', blockSize);
-				faceNode.setAttribute('viewBox', viewBox);
+				faceSvg = document.createElementNS(svgNS, 'svg');
+				faceSvg.setAttribute('width', blockSize);
+				faceSvg.setAttribute('height', blockSize);
+				faceSvg.setAttribute('viewBox', viewBox);
+				faceNode = document.createElement('div');
+				faceNode.className = 'blockface';
+				faceNode.style.width = blockSizePx;
+				faceNode.style.height = blockSizePx;
+				faceNode.appendChild(faceSvg);
 				blockNode.appendChild(faceNode);
 			}
 
 			var face = blockSpec[blockIndex][faceIndex];
 			for (var i = 0; i < 4; ++i)
-				faceNode.appendChild(draw(i, face[i][0], face[i][1], face[i][2]));
+				faceSvg.appendChild(draw(i, face[i][0], face[i][1], face[i][2]));
 
 			transformFace(faceNode, faceIndex);
 		}
@@ -2056,7 +2071,7 @@ This is not possible with the current set of blocks.
 <p><input type="button" id="closeAbout" value="CLOSE" /></p>
 </div>
 
-<div class="space"><div class="block"><svg id="block0face0" class="blockface" width="160" height="160" viewBox="0 0 420 420">
+<div class="space"><div class="block"><div id="block0face0" class="blockface"><svg width="160" height="160" viewBox="0 0 420 420">
 <defs>
   <path id="heartShape" stroke-width="10"
     d="M 70,46 C 60,10 10,10 10,46 10,72 70,130 70,130 70,130 130,72 130,46 130,10 80,10 70,46 Z" />
@@ -2071,7 +2086,7 @@ This is not possible with the current set of blocks.
   <clipPath id="circleClip"><use xlink:href="#circleShape" /></clipPath>
   <clipPath id="triangleClip"><use xlink:href="#triangleShape" /></clipPath>
 </defs>
-</svg></div></div>
+</svg></div></div></div>
 
 <div id="solverReasonBox">
 <span id="solverReason">Party</span>
