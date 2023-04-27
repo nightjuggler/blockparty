@@ -74,7 +74,7 @@ class ShapeButton extends StatefulWidget {
   static const size = 60.0;
   static const borderWidth = 2.0;
   final Widget child;
-  final bool Function(ShapeButtonState) toggle;
+  final bool Function(ShapeButtonState, BuildContext) toggle;
 
   ShapeButton(spec, this.toggle, {super.key}) :
     child = SizedBox(
@@ -109,7 +109,7 @@ class ShapeButtonState extends State<ShapeButton> {
           color: selected ? Colors.indigo : Colors.transparent,
         ),
       ),
-      onPressed: () { if (widget.toggle(this)) toggle(); },
+      onPressed: () { if (widget.toggle(this, context)) toggle(); },
       child: widget.child,
     );
   }
@@ -149,6 +149,7 @@ class _MainState extends State<Main> {
   final _selectedBlocks = List<Block?>.filled(4, null, growable: false);
   int _numSelected = 0;
   final _faceCache = <int, Widget>{};
+  int gameScore = 0;
 
   void shuffle() {
     final random = Random();
@@ -159,23 +160,14 @@ class _MainState extends State<Main> {
     _selectedBlocks.forEach(Block.toggle);
     _selectedBlocks.fillRange(0, 4);
     _numSelected = 0;
+    gameScore = 0;
   }
 
   _MainState() {
     shuffle();
   }
 
-  void printReason(String trait, int length) {
-    if (length == 1) {
-      print('The $trait are all the same.');
-    } else if (length == 4) {
-      print('The $trait are all different.');
-    } else {
-      print('There are $length different $trait.');
-    }
-  }
-
-  void checkParty() {
+  void checkParty(final BuildContext context) {
     final shapes = <int>{};
     final colors = <int>{};
     final fills = <int>{};
@@ -184,20 +176,54 @@ class _MainState extends State<Main> {
       colors.add(shape[1]);
       fills.add(shape[2]);
     }
-    final lengths = [shapes.length, colors.length, fills.length]..sort();
-    final points = <String, int>{
-      '111': 1,
-      '114': 2,
-      '144': 3,
-      '444': 4,
-    }[lengths.join()];
-    print(points == null ? 'No Party!' : 'Party!');
-    printReason('shapes', shapes.length);
-    printReason('colors', colors.length);
-    printReason('fills', fills.length);
+    final lengths = ([shapes.length, colors.length, fills.length]..sort()).join();
+    final points = <String, int>{'111': 1, '114': 2, '144': 3, '444': 4}[lengths];
+    final party = points != null;
+    if (party) {
+      setState(() { gameScore += points; });
+    }
+
+    const boldRed = TextStyle(color: Color.fromARGB(255,255,0,0), fontWeight: FontWeight.bold);
+    const boldGreen = TextStyle(color: Color.fromARGB(255,0,170,0), fontWeight: FontWeight.bold);
+    const defaultStyle = TextStyle(color: Colors.black, fontFamily: 'Verdana', fontSize: 18);
+    const checkMark = Text('\u2713 ', style: boldGreen);
+    const xMark = Text('\u00D7 ', style: boldRed);
+
+    Widget reasonRow(mark, text) => Row(mainAxisAlignment: MainAxisAlignment.center,
+      children: [mark, Text(text)]);
+    Widget reason(String trait, int length) =>
+      length == 1 ? reasonRow(checkMark, 'The $trait are all the same.') :
+      length == 4 ? reasonRow(checkMark, 'The $trait are all different.') :
+      reasonRow(xMark, 'There are $length different $trait.');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: party ?
+          const Color.fromARGB(255,255,240,0) :
+          const Color.fromARGB(255,255,228,225),
+        content: DefaultTextStyle(
+          style: defaultStyle,
+          child: Column(
+            children: [
+              party ? Text('Party!!! ($points points)', style: boldGreen) :
+                const Text('Not a Party!', style: boldRed),
+              reason('shapes', shapes.length),
+              reason('colors', colors.length),
+              reason('fills', fills.length),
+            ],
+          ), // Column
+        ), // DefaultTextStyle
+        duration: const Duration(seconds: 4),
+      )
+    );
   }
 
-  bool toggle(final ShapeButtonState shapeState, final int blockIndex, final int shapeIndex) {
+  bool toggle(
+    final ShapeButtonState shapeState,
+    final BuildContext context,
+    final int blockIndex,
+    final int shapeIndex)
+  {
     final block = _blocks[blockIndex];
     if (block.selectedShapeIndex == shapeIndex) {
       block.selectedShapeIndex = null;
@@ -226,7 +252,7 @@ class _MainState extends State<Main> {
     }
     block.selectedShapeIndex = shapeIndex;
     block.selectedShapeState = shapeState;
-    if (_numSelected == 4) checkParty();
+    if (_numSelected == 4) checkParty(context);
     return true;
   }
 
@@ -266,7 +292,7 @@ class _MainState extends State<Main> {
             shapes.length,
             (final int shapeIndex) => ShapeButton(
               shapes[shapeIndex],
-              (shapeState) => toggle(shapeState, block.index, shapeIndex),
+              (shapeState, context) => toggle(shapeState, context, block.index, shapeIndex),
             ),
             growable: false,
           ),
@@ -282,7 +308,6 @@ class _MainState extends State<Main> {
     final faces = List<Widget>.unmodifiable(_blocksShuffled.map(buildFaceFromBlock));
 
     var timeLeft = '00:00';
-    var score = 0;
     var playLabel = 'PLAY';
     final portrait = MediaQuery.of(context).orientation == Orientation.portrait;
 
@@ -320,7 +345,7 @@ class _MainState extends State<Main> {
                   onPressed: () => setState(shuffle),
                   child: Text(playLabel),
                 ),
-                Text('Score: $score '),
+                Text('Score: $gameScore '),
               ],
             ), // Row
           ), // Container
