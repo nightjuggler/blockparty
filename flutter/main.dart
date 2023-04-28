@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import './blocks.dart';
@@ -128,6 +129,57 @@ class Block {
   static void toggle(final Block? block) => block?.selectedShapeState?.toggle();
 }
 
+class GameTimer extends StatefulWidget {
+  final void Function() shuffle;
+
+  const GameTimer(this.shuffle, {super.key});
+
+  @override
+  State<GameTimer> createState() => GameTimerState();
+}
+
+class GameTimerState extends State<GameTimer> {
+  static const _gameDuration = Duration(minutes: 5, seconds: 1);
+  DateTime _endTime = DateTime.now();
+  Timer? _timer;
+
+  void cancel() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  void onPressed() {
+    if (_timer == null) {
+      widget.shuffle();
+      _endTime = DateTime.now().add(_gameDuration);
+      _timer = Timer.periodic(const Duration(seconds: 1), (timer) => setState(() {}));
+    } else {
+      cancel();
+    }
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Duration timeLeft = Duration.zero;
+    if (_timer != null) {
+      final now = DateTime.now();
+      if (now.isBefore(_endTime)) {
+        timeLeft = _endTime.difference(now);
+      } else {
+        cancel();
+      }
+    }
+    return TextButton(
+      onPressed: onPressed,
+      child: Text(
+        ' ${timeLeft.toString().substring(2, 7)}',
+        style: const TextStyle(color: Colors.black, fontFamily: 'Verdana', fontSize: 18),
+      ),
+    );
+  }
+}
+
 class GameApp extends StatelessWidget {
   const GameApp({super.key});
 
@@ -149,7 +201,8 @@ class _MainState extends State<Main> {
   final _selectedBlocks = List<Block?>.filled(4, null, growable: false);
   int _numSelected = 0;
   final _faceCache = <int, Widget>{};
-  int gameScore = 0;
+  int _gameScore = 0;
+  GameTimer? _timer;
 
   void shuffle() {
     final random = Random();
@@ -160,7 +213,7 @@ class _MainState extends State<Main> {
     _selectedBlocks.forEach(Block.toggle);
     _selectedBlocks.fillRange(0, 4);
     _numSelected = 0;
-    gameScore = 0;
+    _gameScore = 0;
   }
 
   _MainState() {
@@ -180,7 +233,7 @@ class _MainState extends State<Main> {
     final points = <String, int>{'111': 1, '114': 2, '144': 3, '444': 4}[lengths];
     final party = points != null;
     if (party) {
-      setState(() { gameScore += points; });
+      setState(() { _gameScore += points; });
     }
 
     const boldRed = TextStyle(color: Color.fromARGB(255,255,0,0), fontWeight: FontWeight.bold);
@@ -192,9 +245,9 @@ class _MainState extends State<Main> {
     Widget reasonRow(mark, text) => Row(mainAxisAlignment: MainAxisAlignment.center,
       children: [mark, Text(text)]);
     Widget reason(String trait, int length) =>
-      length == 1 ? reasonRow(checkMark, 'The $trait are all the same.') :
-      length == 4 ? reasonRow(checkMark, 'The $trait are all different.') :
-      reasonRow(xMark, 'There are $length different $trait.');
+      length == 1 ? reasonRow(checkMark, 'Same $trait') :
+      length == 4 ? reasonRow(checkMark, 'Unique ${trait}s') :
+      reasonRow(xMark, '$length ${trait}s');
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -207,9 +260,9 @@ class _MainState extends State<Main> {
             children: [
               party ? Text('Party!!! ($points points)', style: boldGreen) :
                 const Text('Not a Party!', style: boldRed),
-              reason('shapes', shapes.length),
-              reason('colors', colors.length),
-              reason('fills', fills.length),
+              reason('shape', shapes.length),
+              reason('color', colors.length),
+              reason('fill', fills.length),
             ],
           ), // Column
         ), // DefaultTextStyle
@@ -303,53 +356,44 @@ class _MainState extends State<Main> {
       RotatedBox(quarterTurns: block.rotation, child: face);
   }
 
+  Widget buildGameBar() => DefaultTextStyle(
+    style: const TextStyle(color: Colors.black, fontFamily: 'Verdana', fontSize: 18),
+    child: Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(colors: [Color.fromARGB(255,124,252,0), Color.fromARGB(255,255,215,0)]),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [_timer ??= GameTimer(() => setState(shuffle)), Text('Score: $_gameScore  ')],
+      ), // Row
+    ), // Container
+  ); // DefaultTextStyle
+
   @override
   Widget build(BuildContext context) {
-    final faces = List<Widget>.unmodifiable(_blocksShuffled.map(buildFaceFromBlock));
-
-    var timeLeft = '00:00';
-    var playLabel = 'PLAY';
     final portrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    final faces = List<Widget>.unmodifiable(_blocksShuffled.map(buildFaceFromBlock));
+    const bgColor = Color.fromARGB(255,222,184,135); // BurlyWood
 
     return Scaffold(
-        appBar: portrait ? AppBar(
-          title: const Text('Block Party'),
-        ) : null,
-        backgroundColor: const Color.fromARGB(255,222,184,135), // BurlyWood
-        body: portrait ? GridView.count(
-          key: _blocksKey,
-          crossAxisCount: 2,
-          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 26),
-          children: faces,
-        ) : GridView.count(
-          key: _blocksKey,
-          crossAxisCount: 4,
-          padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 80),
-          children: faces,
-        ), // GridView
-        bottomSheet: DefaultTextStyle(
-          style: const TextStyle(
-            color: Colors.black,
-            fontFamily: 'Verdana',
-            fontSize: 20,
-          ), // TextStyle
-          child: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(colors: [Color.fromARGB(255,124,252,0), Color.fromARGB(255,255,215,0)]),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Text(' Time: $timeLeft'),
-                ElevatedButton(
-                  onPressed: () => setState(shuffle),
-                  child: Text(playLabel),
-                ),
-                Text('Score: $gameScore '),
-              ],
-            ), // Row
-          ), // Container
-        ), // DefaultTextStyle
+      appBar: AppBar(
+        backgroundColor: bgColor,
+        title: buildGameBar(),
+        titleSpacing: 0.0,
+        toolbarHeight: 35.0,
+      ),
+      backgroundColor: bgColor,
+      body: portrait ? GridView.count(
+        key: _blocksKey,
+        crossAxisCount: 2,
+        padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 26),
+        children: faces,
+      ) : GridView.count(
+        key: _blocksKey,
+        crossAxisCount: 4,
+        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 80),
+        children: faces,
+      ), // GridView
     ); // Scaffold
   }
 }
