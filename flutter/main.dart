@@ -117,7 +117,8 @@ class ShapeButtonState extends State<ShapeButton> {
 }
 
 class Block {
-  final int index, face, rotation;
+  final int index;
+  int face, rotation;
   int? selectedShapeIndex;
   ShapeButtonState? selectedShapeState;
 
@@ -130,9 +131,9 @@ class Block {
 }
 
 class GameTimer extends StatefulWidget {
-  final void Function() shuffle;
+  final void Function() gameStart, gameOver;
 
-  const GameTimer(this.shuffle, {super.key});
+  const GameTimer(this.gameStart, this.gameOver, {super.key});
 
   @override
   State<GameTimer> createState() => GameTimerState();
@@ -150,13 +151,33 @@ class GameTimerState extends State<GameTimer> {
 
   void onPressed() {
     if (_timer == null) {
-      widget.shuffle();
+      widget.gameStart();
       _endTime = DateTime.now().add(_gameDuration);
       _timer = Timer.periodic(const Duration(seconds: 1), (timer) => setState(() {}));
     } else {
       cancel();
+      widget.gameOver();
     }
     setState(() {});
+  }
+
+  void showGameOver(BuildContext context) {
+    widget.gameOver();
+
+    const textStyle = TextStyle(
+      color: Colors.black,
+      fontFamily: 'Verdana',
+      fontSize: 16,
+      fontWeight: FontWeight.bold,
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        backgroundColor: Color.fromARGB(255,255,228,225),
+        content: Center(child: Text('Game Over!', style: textStyle)),
+        duration: Duration(seconds: 4),
+      )
+    );
   }
 
   @override
@@ -168,6 +189,7 @@ class GameTimerState extends State<GameTimer> {
         timeLeft = _endTime.difference(now);
       } else {
         cancel();
+        Timer.run(() => showGameOver(context));
       }
     }
     return TextButton(
@@ -200,8 +222,10 @@ class _MainState extends State<Main> {
   late UniqueKey _blocksKey;
   final _selectedBlocks = List<Block?>.filled(4, null, growable: false);
   int _numSelected = 0;
+  bool _disabled = false;
   final _faceCache = <int, Widget>{};
   int _gameScore = 0;
+  int _highScore = 0;
   GameTimer? _timer;
 
   void shuffle() {
@@ -221,14 +245,18 @@ class _MainState extends State<Main> {
   }
 
   void checkParty(final BuildContext context) {
+    _disabled = true;
     final shapes = <int>{};
     final colors = <int>{};
     final fills = <int>{};
-    for (final List<int> shape in _selectedBlocks.map((block) => block!.selectedShape())) {
+
+    for (int i = 0; i < 4; i++) {
+      final List<int> shape = _selectedBlocks[i]!.selectedShape();
       shapes.add(shape[0]);
       colors.add(shape[1]);
       fills.add(shape[2]);
     }
+
     final lengths = ([shapes.length, colors.length, fills.length]..sort()).join();
     final points = <String, int>{'111': 1, '114': 2, '144': 3, '444': 4}[lengths];
     final party = points != null;
@@ -238,7 +266,7 @@ class _MainState extends State<Main> {
 
     const boldRed = TextStyle(color: Color.fromARGB(255,255,0,0), fontWeight: FontWeight.bold);
     const boldGreen = TextStyle(color: Color.fromARGB(255,0,170,0), fontWeight: FontWeight.bold);
-    const defaultStyle = TextStyle(color: Colors.black, fontFamily: 'Verdana', fontSize: 18);
+    const defaultStyle = TextStyle(color: Colors.black, fontFamily: 'Verdana', fontSize: 16);
     const checkMark = Text('\u2713 ', style: boldGreen);
     const xMark = Text('\u00D7 ', style: boldRed);
 
@@ -268,7 +296,28 @@ class _MainState extends State<Main> {
         ), // DefaultTextStyle
         duration: const Duration(seconds: 4),
       )
-    );
+    ).closed.then((SnackBarClosedReason reason) {
+      if (party) {
+        void rotate(final Block block, final Map<int, int> rotateMap) {
+          final int position = rotateMap[10 * block.face + block.rotation]!;
+          block.face = position ~/ 10;
+          block.rotation = position % 10;
+          block.selectedShapeState!.toggle();
+          block.selectedShapeIndex = null;
+          block.selectedShapeState = null;
+        }
+        rotate(_selectedBlocks[0]!, rotateLeft);
+        rotate(_selectedBlocks[1]!, rotateRight);
+        rotate(_selectedBlocks[2]!, rotateLeft);
+        rotate(_selectedBlocks[3]!, rotateRight);
+        setState(() {
+          _blocksKey = UniqueKey();
+          _selectedBlocks.fillRange(0, 4);
+          _numSelected = 0;
+        });
+      }
+      _disabled = false;
+    });
   }
 
   bool toggle(
@@ -277,6 +326,8 @@ class _MainState extends State<Main> {
     final int blockIndex,
     final int shapeIndex)
   {
+    if (_disabled) return false;
+
     final block = _blocks[blockIndex];
     if (block.selectedShapeIndex == shapeIndex) {
       block.selectedShapeIndex = null;
@@ -326,6 +377,8 @@ class _MainState extends State<Main> {
       crossAxisCount: 2,
       crossAxisSpacing: 36,
       mainAxisSpacing: 36,
+      physics: const NeverScrollableScrollPhysics(),
+      primary: false,
       children: [
         shapes[0],
         RotatedBox(quarterTurns: 1, child: shapes[1]),
@@ -353,7 +406,7 @@ class _MainState extends State<Main> {
       },
     );
     return block.rotation == 0 ? face :
-      RotatedBox(quarterTurns: block.rotation, child: face);
+      RotatedBox(quarterTurns: 4 - block.rotation, child: face);
   }
 
   Widget buildGameBar() => DefaultTextStyle(
@@ -364,7 +417,13 @@ class _MainState extends State<Main> {
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [_timer ??= GameTimer(() => setState(shuffle)), Text('Score: $_gameScore  ')],
+        children: [
+          _timer ??= GameTimer(
+            () => setState(shuffle),
+            () { if (_gameScore > _highScore) setState(() { _highScore = _gameScore; }); },
+          ),
+          Text('Score: $_gameScore ($_highScore)  '),
+        ],
       ), // Row
     ), // Container
   ); // DefaultTextStyle

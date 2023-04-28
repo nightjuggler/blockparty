@@ -1,4 +1,43 @@
+/*
+face.rotation -> left / right
+0.0 -> 1.0 / 4.2  3.0 -> 2.3 / 0.1
+0.1 -> 3.0 / 5.2  3.1 -> 4.1 / 1.1
+0.2 -> 4.0 / 1.2  3.2 -> 0.3 / 2.1
+0.3 -> 5.0 / 3.2  3.3 -> 1.3 / 4.3
+1.0 -> 2.0 / 0.0  4.0 -> 2.2 / 0.2
+1.1 -> 3.1 / 5.1  4.1 -> 5.1 / 3.1
+1.2 -> 0.2 / 2.2  4.2 -> 0.0 / 2.0
+1.3 -> 5.3 / 3.3  4.3 -> 3.3 / 5.3
+2.0 -> 4.2 / 1.0  5.0 -> 2.1 / 0.3
+2.1 -> 3.2 / 5.0  5.1 -> 1.1 / 4.1
+2.2 -> 1.2 / 4.0  5.2 -> 0.1 / 2.3
+2.3 -> 5.2 / 3.0  5.3 -> 4.3 / 1.3
+*/
+const rotateSpec = [
+  [ 0, 10, 20, 42],
+  [ 1, 30, 23, 52],
+  [ 2, 40, 22, 12],
+  [ 3, 50, 21, 32],
+  [11, 31, 41, 51],
+  [13, 53, 43, 33],
+];
+final rotateLeft = <int, int>{};
+final rotateRight = <int, int>{};
+
+void initRotateMaps() {
+  for (final List<int> spec in rotateSpec) {
+    int last = spec.last;
+    for (final int pos in spec) {
+      rotateLeft[last] = pos;
+      rotateRight[pos] = last;
+      last = pos;
+    }
+  }
+}
+
 final List<List<List<List<int>>>> blockSpec = () {
+  initRotateMaps();
+
   const heart = 0;
   const circle = 1;
   const square = 2;
