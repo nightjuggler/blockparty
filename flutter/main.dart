@@ -144,21 +144,21 @@ class GameTimerState extends State<GameTimer> {
   DateTime _endTime = DateTime.now();
   Timer? _timer;
 
-  void cancel() {
-    _timer?.cancel();
-    _timer = null;
-  }
-
   void onPressed() {
-    if (_timer == null) {
-      widget.gameStart();
+    if (_timer != null) return;
+    widget.gameStart();
+    setState(() {
       _endTime = DateTime.now().add(_gameDuration);
       _timer = Timer.periodic(const Duration(seconds: 1), (timer) => setState(() {}));
-    } else {
-      cancel();
-      widget.gameOver();
-    }
-    setState(() {});
+    });
+  }
+
+  void onLongPress() {
+    if (_timer == null || !_timer!.isActive) return;
+    setState(() {
+      _endTime = DateTime.now();
+      _timer!.cancel();
+    });
   }
 
   void showGameOver(BuildContext context) {
@@ -177,7 +177,9 @@ class GameTimerState extends State<GameTimer> {
         content: Center(child: Text('Game Over!', style: textStyle)),
         duration: Duration(seconds: 4),
       )
-    );
+    ).closed.then((SnackBarClosedReason reason) {
+      setState(() { _timer = null; });
+    });
   }
 
   @override
@@ -188,14 +190,15 @@ class GameTimerState extends State<GameTimer> {
       if (now.isBefore(_endTime)) {
         timeLeft = _endTime.difference(now);
       } else {
-        cancel();
+        _timer!.cancel();
         Timer.run(() => showGameOver(context));
       }
     }
     return TextButton(
       onPressed: onPressed,
+      onLongPress: onLongPress,
       child: Text(
-        ' ${timeLeft.toString().substring(2, 7)}',
+        _timer == null ? ' Start' : ' ${timeLeft.toString().substring(2, 7)}',
         style: const TextStyle(color: Colors.black, fontFamily: 'Verdana', fontSize: 18),
       ),
     );
@@ -409,6 +412,14 @@ class _MainState extends State<Main> {
       RotatedBox(quarterTurns: 4 - block.rotation, child: face);
   }
 
+  void gameStart() => setState(shuffle);
+  void gameOver() {
+    if (_gameScore > _highScore) {
+      _highScore = _gameScore;
+    }
+    setState(() { _gameScore = 0; });
+  }
+
   Widget buildGameBar() => DefaultTextStyle(
     style: const TextStyle(color: Colors.black, fontFamily: 'Verdana', fontSize: 18),
     child: Container(
@@ -418,10 +429,7 @@ class _MainState extends State<Main> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _timer ??= GameTimer(
-            () => setState(shuffle),
-            () { if (_gameScore > _highScore) setState(() { _highScore = _gameScore; }); },
-          ),
+          _timer ??= GameTimer(gameStart, gameOver),
           Text('Score: $_gameScore ($_highScore)  '),
         ],
       ), // Row
