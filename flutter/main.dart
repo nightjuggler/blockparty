@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import './blocks.dart';
 
 void main() => runApp(const GameApp());
@@ -162,8 +165,6 @@ class GameTimerState extends State<GameTimer> {
   }
 
   void showGameOver(BuildContext context) {
-    widget.gameOver();
-
     const textStyle = TextStyle(
       color: Colors.black,
       fontFamily: 'Verdana',
@@ -178,6 +179,7 @@ class GameTimerState extends State<GameTimer> {
         duration: Duration(seconds: 4),
       )
     ).closed.then((SnackBarClosedReason reason) {
+      widget.gameOver();
       setState(() { _timer = null; });
     });
   }
@@ -205,6 +207,34 @@ class GameTimerState extends State<GameTimer> {
   }
 }
 
+class JsonFile {
+  final String name;
+  File? file;
+
+  JsonFile(this.name);
+
+  Future<File> getFile() async {
+    // https://pub.dev/packages/path_provider
+    final Directory dir = await getApplicationDocumentsDirectory();
+    final String path = '${dir.path}/$name.json';
+    return File(path);
+  }
+
+  Future<dynamic> read() async {
+    try {
+      file = await getFile();
+      final string = await file?.readAsString();
+      return jsonDecode(string ?? 'null');
+    } catch (e) {
+      return null;
+    }
+  }
+
+  void write(object) {
+    file?.writeAsString(jsonEncode(object));
+  }
+}
+
 class GameApp extends StatelessWidget {
   const GameApp({super.key});
 
@@ -227,9 +257,10 @@ class _MainState extends State<Main> {
   int _numSelected = 0;
   bool _disabled = false;
   final _faceCache = <int, Widget>{};
-  int _gameScore = 0;
-  int _highScore = 0;
+  int? _gameScore;
   GameTimer? _timer;
+  final _scoresFile = JsonFile('scores');
+  List<dynamic>? _scores;
 
   void shuffle() {
     final random = Random();
@@ -240,11 +271,13 @@ class _MainState extends State<Main> {
     _selectedBlocks.forEach(Block.toggle);
     _selectedBlocks.fillRange(0, 4);
     _numSelected = 0;
-    _gameScore = 0;
   }
 
   _MainState() {
     shuffle();
+    _scoresFile.read().then((scores) {
+      _scores = scores ?? List<dynamic>.generate(10, (int index) => [0, '', '']);
+    });
   }
 
   void checkParty(final BuildContext context) {
@@ -263,8 +296,8 @@ class _MainState extends State<Main> {
     final lengths = ([shapes.length, colors.length, fills.length]..sort()).join();
     final points = <String, int>{'111': 1, '114': 2, '144': 3, '444': 4}[lengths];
     final party = points != null;
-    if (party) {
-      setState(() { _gameScore += points; });
+    if (party && _gameScore != null) {
+      setState(() { _gameScore = _gameScore! + points; });
     }
 
     const boldRed = TextStyle(color: Color.fromARGB(255,255,0,0), fontWeight: FontWeight.bold);
@@ -412,42 +445,87 @@ class _MainState extends State<Main> {
       RotatedBox(quarterTurns: 4 - block.rotation, child: face);
   }
 
-  void gameStart() => setState(shuffle);
-  void gameOver() {
-    if (_gameScore > _highScore) {
-      _highScore = _gameScore;
-    }
-    setState(() { _gameScore = 0; });
+  void gameStart() {
+    _gameScore = 0;
+    setState(shuffle);
   }
 
-  Widget buildGameBar() => DefaultTextStyle(
-    style: const TextStyle(color: Colors.black, fontFamily: 'Verdana', fontSize: 18),
-    child: Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(colors: [Color.fromARGB(255,124,252,0), Color.fromARGB(255,255,215,0)]),
+  void gameOver() {
+    if (_scores != null) {
+      List<dynamic> scores = _scores!;
+      int i = scores.length;
+      while (i > 0 && _gameScore! > scores[i-1][0]) { --i; }
+      if (i < scores.length) {
+        scores.insert(i, [_gameScore, DateTime.now().toString(), '']);
+        scores.removeLast();
+        _scoresFile.write(scores);
+      }
+    }
+    setState(() { _gameScore = null; });
+  }
+
+  Widget buildScoresTable(List<dynamic> scores) {
+    const textStyle = TextStyle(inherit: false, color: Colors.black, fontFamily: 'Verdana', fontSize: 15);
+    return Drawer(
+      backgroundColor: Colors.transparent,
+      child: ListView.separated(
+        itemCount: scores.length + 1,
+        itemBuilder: (BuildContext context, int i) {
+          if (i == 0) {
+            return Container(
+              padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top + 6.0, bottom: 6.0),
+              color: const Color.fromARGB(255,222,184,135),
+              child: const Center(child: Text('High Scores', style: textStyle)),
+            );
+          }
+          final int score = scores[i-1][0];
+          final String date = scores[i-1][1];
+          return ListTile(
+            leading: Text('$i.'),
+            leadingAndTrailingTextStyle: textStyle,
+            tileColor: const Color.fromARGB(255,222,184,135),
+            title: Text(score == 0 ? '\u2014' : score.toString(), textAlign: TextAlign.right),
+            titleAlignment: ListTileTitleAlignment.center,
+            titleTextStyle: textStyle,
+            trailing: Text(date.isEmpty ? '\u2014' : date.substring(0, 10)),
+          );
+        },
+        separatorBuilder: (BuildContext context, int i) => const Divider(height: 6),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _timer ??= GameTimer(gameStart, gameOver),
-          Text('Score: $_gameScore ($_highScore)  '),
-        ],
-      ), // Row
-    ), // Container
-  ); // DefaultTextStyle
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final portrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    final portrait = MediaQuery.orientationOf(context) == Orientation.portrait;
     final faces = List<Widget>.unmodifiable(_blocksShuffled.map(buildFaceFromBlock));
     const bgColor = Color.fromARGB(255,222,184,135); // BurlyWood
+    const textStyle = TextStyle(color: Colors.black, fontFamily: 'Verdana', fontSize: 18);
+    const toolbarHeight = 35.0;
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: bgColor,
-        title: buildGameBar(),
+        foregroundColor: Colors.black,
+        flexibleSpace: DecoratedBox(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(colors: [Color.fromARGB(255,124,252,0), Color.fromARGB(255,255,215,0)]),
+          ),
+          child: SizedBox(
+            width: MediaQuery.sizeOf(context).width,
+            height: MediaQuery.paddingOf(context).top + toolbarHeight,
+          ),
+        ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _timer ??= GameTimer(gameStart, gameOver),
+            if (_gameScore != null) Text('Score: $_gameScore  '),
+          ],
+        ),
         titleSpacing: 0.0,
-        toolbarHeight: 35.0,
+        titleTextStyle: textStyle,
+        toolbarHeight: toolbarHeight,
       ),
       backgroundColor: bgColor,
       body: portrait ? GridView.count(
@@ -461,6 +539,7 @@ class _MainState extends State<Main> {
         padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 80),
         children: faces,
       ), // GridView
+      drawer: _scores == null ? null : buildScoresTable(_scores!),
     ); // Scaffold
   }
 }
