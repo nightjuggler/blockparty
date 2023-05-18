@@ -200,8 +200,8 @@ class GameTimerState extends State<GameTimer> {
       onPressed: onPressed,
       onLongPress: onLongPress,
       child: Text(
-        _timer == null ? ' Start' : ' ${timeLeft.toString().substring(2, 7)}',
-        style: const TextStyle(color: Colors.black, fontFamily: 'Verdana', fontSize: 18),
+        _timer == null ? 'Start' : timeLeft.toString().substring(2, 7),
+        style: const TextStyle(color: Colors.black, fontFamily: 'Verdana', fontSize: 15),
       ),
     );
   }
@@ -258,7 +258,7 @@ class _MainState extends State<Main> {
   bool _disabled = false;
   final _faceCache = <int, Widget>{};
   int? _gameScore;
-  GameTimer? _timer;
+  late GameTimer _timer;
   final _scoresFile = JsonFile('scores');
   List<dynamic>? _scores;
 
@@ -275,6 +275,7 @@ class _MainState extends State<Main> {
 
   _MainState() {
     shuffle();
+    _timer = GameTimer(gameStart, gameOver);
     _scoresFile.read().then((scores) {
       _scores = scores ?? List<dynamic>.generate(10, (int index) => [0, '', '']);
     });
@@ -500,33 +501,39 @@ class _MainState extends State<Main> {
     final portrait = MediaQuery.orientationOf(context) == Orientation.portrait;
     final faces = List<Widget>.unmodifiable(_blocksShuffled.map(buildFaceFromBlock));
     const bgColor = Color.fromARGB(255,222,184,135); // BurlyWood
-    const textStyle = TextStyle(color: Colors.black, fontFamily: 'Verdana', fontSize: 18);
-    const toolbarHeight = 35.0;
+    const textStyle = TextStyle(color: Colors.black, fontFamily: 'Verdana', fontSize: 15);
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: bgColor,
-        foregroundColor: Colors.black,
-        flexibleSpace: DecoratedBox(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(35.0),
+        child: Container(
+          padding: EdgeInsets.fromLTRB(10.0, MediaQuery.paddingOf(context).top, 20.0, 0.0),
           decoration: const BoxDecoration(
             gradient: LinearGradient(colors: [Color.fromARGB(255,124,252,0), Color.fromARGB(255,255,215,0)]),
           ),
-          child: SizedBox(
-            width: MediaQuery.sizeOf(context).width,
-            height: MediaQuery.paddingOf(context).top + toolbarHeight,
-          ),
-        ),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _timer ??= GameTimer(gameStart, gameOver),
-            if (_gameScore != null) Text('Score: $_gameScore  '),
-          ],
-        ),
-        titleSpacing: 0.0,
-        titleTextStyle: textStyle,
-        toolbarHeight: toolbarHeight,
-      ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Builder(
+                builder: (BuildContext context) {
+                  return IconButton(
+                    icon: const Icon(Icons.menu),
+                    iconSize: 28.0,
+                    color: Colors.black,
+                    disabledColor: Colors.transparent,
+                    padding: const EdgeInsets.all(0.0),
+                    onPressed: _scores == null ? null : () {
+                      Scaffold.of(context).openDrawer();
+                    },
+                  );
+                },
+              ),
+              _timer,
+              if (_gameScore != null) Text('Score: $_gameScore', style: textStyle),
+            ],
+          ), // Row
+        ), // Container
+      ), // PreferredSize
       backgroundColor: bgColor,
       body: portrait ? GridView.count(
         key: _blocksKey,
