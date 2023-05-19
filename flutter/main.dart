@@ -250,6 +250,8 @@ class Main extends StatefulWidget {
 }
 
 class _MainState extends State<Main> {
+  static const scaffoldColor = Color.fromARGB(255,222,184,135); // BurlyWood
+
   late List<Block> _blocks;
   late List<Block> _blocksShuffled;
   late UniqueKey _blocksKey;
@@ -475,7 +477,7 @@ class _MainState extends State<Main> {
           if (i == 0) {
             return Container(
               padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top + 6.0, bottom: 6.0),
-              color: const Color.fromARGB(255,222,184,135),
+              color: scaffoldColor,
               child: const Center(child: Text('High Scores', style: textStyle)),
             );
           }
@@ -484,7 +486,7 @@ class _MainState extends State<Main> {
           return ListTile(
             leading: Text('$i.'),
             leadingAndTrailingTextStyle: textStyle,
-            tileColor: const Color.fromARGB(255,222,184,135),
+            tileColor: scaffoldColor,
             title: Text(score == 0 ? '\u2014' : score.toString(), textAlign: TextAlign.right),
             titleAlignment: ListTileTitleAlignment.center,
             titleTextStyle: textStyle,
@@ -496,45 +498,42 @@ class _MainState extends State<Main> {
     );
   }
 
+  Widget buildAppBar(BuildContext context) {
+    const textStyle = TextStyle(color: Colors.black, fontFamily: 'Verdana', fontSize: 15);
+    return Container(
+      padding: EdgeInsets.fromLTRB(10.0, MediaQuery.paddingOf(context).top, 20.0, 0.0),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(colors: [Color.fromARGB(255,124,252,0), Color.fromARGB(255,255,215,0)]),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.menu),
+            iconSize: 28.0,
+            color: Colors.black,
+            disabledColor: Colors.transparent,
+            padding: const EdgeInsets.all(0.0),
+            onPressed: _scores == null ? null : () => Scaffold.of(context).openDrawer(),
+          ),
+          _timer,
+          if (_gameScore != null) Text('Score: $_gameScore', style: textStyle),
+        ],
+      ), // Row
+    ); // Container
+  }
+
   @override
   Widget build(BuildContext context) {
     final portrait = MediaQuery.orientationOf(context) == Orientation.portrait;
     final faces = List<Widget>.unmodifiable(_blocksShuffled.map(buildFaceFromBlock));
-    const bgColor = Color.fromARGB(255,222,184,135); // BurlyWood
-    const textStyle = TextStyle(color: Colors.black, fontFamily: 'Verdana', fontSize: 15);
 
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(35.0),
-        child: Container(
-          padding: EdgeInsets.fromLTRB(10.0, MediaQuery.paddingOf(context).top, 20.0, 0.0),
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(colors: [Color.fromARGB(255,124,252,0), Color.fromARGB(255,255,215,0)]),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Builder(
-                builder: (BuildContext context) {
-                  return IconButton(
-                    icon: const Icon(Icons.menu),
-                    iconSize: 28.0,
-                    color: Colors.black,
-                    disabledColor: Colors.transparent,
-                    padding: const EdgeInsets.all(0.0),
-                    onPressed: _scores == null ? null : () {
-                      Scaffold.of(context).openDrawer();
-                    },
-                  );
-                },
-              ),
-              _timer,
-              if (_gameScore != null) Text('Score: $_gameScore', style: textStyle),
-            ],
-          ), // Row
-        ), // Container
-      ), // PreferredSize
-      backgroundColor: bgColor,
+        child: Builder(builder: buildAppBar),
+      ),
+      backgroundColor: scaffoldColor,
       body: portrait ? GridView.count(
         key: _blocksKey,
         crossAxisCount: 2,
